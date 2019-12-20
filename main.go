@@ -204,4 +204,7 @@ func main() {
 		time.Sleep(time.Second)
 	}
 	printStat(delays, reqcnt, errcnt, startTime)
+	if len(delays) == 0 {
+		os.Exit(1)
+	}
 }
