@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"v2ray.com/core"
 	"v2ray.com/core/app/dispatcher"
 	applog "v2ray.com/core/app/log"
@@ -14,20 +16,20 @@ import (
 )
 
 type VmessLink struct {
-	Add  string `json:"add,omitempty"`
-	Aid  string `json:"aid,omitempty"`
-	Host string `json:"host,omitempty"`
-	ID   string `json:"id,omitempty"`
-	Net  string `json:"net,omitempty"`
-	Path string `json:"path,omitempty"`
-	Port string `json:"port,omitempty"`
-	Ps   string `json:"ps,omitempty"`
-	Tls  string `json:"tls,omitempty"`
-	Type string `json:"type,omitempty"`
+	Add  string      `json:"add,omitempty"`
+	Aid  string      `json:"aid,omitempty"`
+	Host string      `json:"host,omitempty"`
+	ID   string      `json:"id,omitempty"`
+	Net  string      `json:"net,omitempty"`
+	Path string      `json:"path,omitempty"`
+	Port interface{} `json:"port,omitempty"`
+	Ps   string      `json:"ps,omitempty"`
+	Tls  string      `json:"tls,omitempty"`
+	Type string      `json:"type,omitempty"`
 }
 
 func (v VmessLink) String() string {
-	return fmt.Sprintf("%s|%s|%s  (%s)", v.Net, v.Add, v.Port, v.Ps)
+	return fmt.Sprintf("%s|%s|%v  (%s)", v.Net, v.Add, v.Port, v.Ps)
 }
 
 func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
@@ -88,7 +90,7 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
   "vnext": [
     {
       "address": "%s",
-      "port": %s,
+      "port": %v,
       "users": [
         {
           "id": "%s",
@@ -105,7 +107,12 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 
 func parseVmess() (*VmessLink, error) {
 
-	b, err := base64.StdEncoding.DecodeString(vmess[8:])
+	b64 := vmess[8:]
+	if len(b64)/4 != 0 {
+		b64 += strings.Repeat("=", len(b64)%4)
+	}
+
+	b, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil {
 		return nil, err
 	}
