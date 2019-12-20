@@ -88,15 +88,15 @@ func printStat(delays []int64, req, errs int, start time.Time) {
 	avg := float64(sum) / float64(len(delays))
 
 	fmt.Printf("\n--- %s vmess ping statistics ---\n", desturl)
-	fmt.Printf("%d requests made, %d success, time %v\n", req, len(delays), time.Since(start))
-	fmt.Printf("rtt min/avg/max = %d/%.2f/%d ms\n", min, avg, max)
+	fmt.Printf("%d requests made, %d success, total time %v\n", req, len(delays), time.Since(start))
+	fmt.Printf("rtt min/avg/max = %d/%.0f/%d ms\n", min, avg, max)
 }
 
 func main() {
 	version := flag.Bool("version", false, "Show current version.")
 	verbose := flag.Bool("v", false, "verbose (debug log)")
 	flag.StringVar(&desturl, "dest", "http://www.google.com/gen_204", "the test destination url, need 204 for success return")
-	flag.UintVar(&multiple, "t", 0, "times")
+	flag.UintVar(&multiple, "c", 9999, "Count. Stop after sending COUNT requests")
 	flag.UintVar(&timeout, "o", 10, "timeout seconds for each request")
 	flag.Parse()
 
@@ -106,7 +106,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	vmess = flag.Args()[0]
 	printVersion()
 	if *version {
 		return
@@ -116,6 +115,7 @@ func main() {
 		loglevel = commlog.Severity_Debug
 	}
 
+	vmess = flag.Args()[0]
 	server, err := startV2Ray()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -129,9 +129,6 @@ func main() {
 	}
 	defer server.Close()
 
-	if multiple == 0 {
-		multiple = 1
-	}
 	round := multiple
 	var delays []int64
 	var errcnt int
