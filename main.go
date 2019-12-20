@@ -15,12 +15,8 @@ import (
 	"time"
 
 	"v2ray.com/core"
-	"v2ray.com/core/app/dispatcher"
-	applog "v2ray.com/core/app/log"
-	"v2ray.com/core/app/proxyman"
 	commlog "v2ray.com/core/common/log"
 	v2net "v2ray.com/core/common/net"
-	"v2ray.com/core/common/serial"
 	_ "v2ray.com/core/main/distro/all"
 )
 
@@ -32,40 +28,6 @@ var (
 	desturl  string = "http://www.google.com/gen_204"
 	MAINVER         = "0.0.0-src"
 )
-
-func startV2Ray() (*core.Instance, error) {
-
-	o, err := parseVmess()
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("PING ", o.String())
-
-	ob, err := o.GenOutbound()
-	if err != nil {
-		return nil, err
-	}
-	config := &core.Config{
-		App: []*serial.TypedMessage{
-			serial.ToTypedMessage(&applog.Config{
-				ErrorLogType:  applog.LogType_Console,
-				ErrorLogLevel: loglevel,
-			}),
-			serial.ToTypedMessage(&dispatcher.Config{}),
-			serial.ToTypedMessage(&proxyman.InboundConfig{}),
-			serial.ToTypedMessage(&proxyman.OutboundConfig{}),
-		},
-	}
-
-	config.Outbound = []*core.OutboundHandlerConfig{ob}
-	server, err := core.New(config)
-	if err != nil {
-		return nil, err
-	}
-
-	return server, nil
-}
 
 func printVersion() {
 	fmt.Fprintf(os.Stderr, "Vmessping [%s] Yet another distribution of v2ray (v2ray-core: %s)\n", MAINVER, core.Version())
@@ -154,7 +116,6 @@ func main() {
 		loglevel = commlog.Severity_Debug
 	}
 
-	commlog.RegisterHandler(commlog.NewLogger(commlog.CreateStderrLogWriter()))
 	server, err := startV2Ray()
 	if err != nil {
 		fmt.Println(err.Error())

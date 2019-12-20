@@ -5,6 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"v2ray.com/core"
+	"v2ray.com/core/app/dispatcher"
+	applog "v2ray.com/core/app/log"
+	"v2ray.com/core/app/proxyman"
+	commlog "v2ray.com/core/common/log"
+	"v2ray.com/core/common/serial"
 	"v2ray.com/core/infra/conf"
 )
 
@@ -111,4 +116,39 @@ func parseVmess() (*VmessLink, error) {
 	}
 
 	return v, nil
+}
+
+func startV2Ray() (*core.Instance, error) {
+
+	o, err := parseVmess()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("PING ", o.String())
+
+	ob, err := o.GenOutbound()
+	if err != nil {
+		return nil, err
+	}
+	config := &core.Config{
+		App: []*serial.TypedMessage{
+			serial.ToTypedMessage(&applog.Config{
+				ErrorLogType:  applog.LogType_Console,
+				ErrorLogLevel: loglevel,
+			}),
+			serial.ToTypedMessage(&dispatcher.Config{}),
+			serial.ToTypedMessage(&proxyman.InboundConfig{}),
+			serial.ToTypedMessage(&proxyman.OutboundConfig{}),
+		},
+	}
+
+	commlog.RegisterHandler(commlog.NewLogger(commlog.CreateStderrLogWriter()))
+	config.Outbound = []*core.OutboundHandlerConfig{ob}
+	server, err := core.New(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return server, nil
 }
