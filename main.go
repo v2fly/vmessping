@@ -28,6 +28,7 @@ var (
 	vmess    string
 	loglevel commlog.Severity
 	multiple uint
+	timeout  uint
 	desturl  string = "http://www.google.com/gen_204"
 	MAINVER         = "0.0.0-src"
 )
@@ -89,7 +90,7 @@ func measureInstDelay(ctx context.Context, inst *core.Instance) (int64, error) {
 
 	c := &http.Client{
 		Transport: tr,
-		Timeout:   12 * time.Second,
+		Timeout:   time.Duration(timeout) * time.Second,
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", desturl, nil)
@@ -134,6 +135,7 @@ func main() {
 	verbose := flag.Bool("v", false, "verbose (debug log)")
 	flag.StringVar(&desturl, "dest", "http://www.google.com/gen_204", "the test destination url, need 204 for success return")
 	flag.UintVar(&multiple, "t", 0, "times")
+	flag.UintVar(&timeout, "o", 10, "timeout seconds for each request")
 	flag.Parse()
 
 	if flag.NArg() == 0 {
