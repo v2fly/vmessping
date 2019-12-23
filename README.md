@@ -2,17 +2,17 @@
 a ping prober for `vmess://` link in V2rayN/NG format.
 
 ```
+./vmessping vmess://....
 Usage of ./vmessping:
   -c uint
         Count. Stop after sending COUNT requests (default 9999)
   -dest string
         the test destination url, need 204 for success return (default "http://www.google.com/gen_204")
+  -i uint
+        inteval seconds between pings (default 1)
   -o uint
         timeout seconds for each request (default 10)
   -v    verbose (debug log)
-  -version
-        Show current version.
-
 ```
 
 # Example

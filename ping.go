@@ -2,6 +2,7 @@ package vmessping
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
 	"v2ray.com/core"
 	v2net "v2ray.com/core/common/net"
 )
@@ -21,7 +21,7 @@ func PrintVersion(mv string) {
 
 func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int64, error) {
 	if inst == nil {
-		return -1, newError("core instance nil")
+		return -1, errors.New("core instance nil")
 	}
 
 	tr := &http.Transport{
@@ -78,7 +78,7 @@ func printStat(delays []int64, req, errs int) {
 	fmt.Printf("rtt min/avg/max = %d/%.0f/%d ms\n", min, avg, max)
 }
 
-func Ping(vmess string, count uint, dest string, verbose bool) (int, error) {
+func Ping(vmess string, count uint, dest string, timeoutsec, inteval uint, verbose bool) (int, error) {
 	server, err := StartV2Ray(vmess, verbose)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -112,7 +112,7 @@ func Ping(vmess string, count uint, dest string, verbose bool) (int, error) {
 		seq := count - round + 1
 
 		reqcnt++
-		delay, err := MeasureDelay(server, time.Second*10, dest)
+		delay, err := MeasureDelay(server, time.Second*time.Duration(timeoutsec), dest)
 		if err != nil {
 			errcnt++
 		}
@@ -126,7 +126,7 @@ func Ping(vmess string, count uint, dest string, verbose bool) (int, error) {
 
 		round--
 		if round > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * time.Duration(inteval))
 		}
 	}
 

@@ -8,20 +8,18 @@ import (
 )
 
 var (
-	vmess   string
-	count   uint
-	timeout uint
-	desturl string
 	MAINVER = "0.0.0-src"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose (debug log)")
-	flag.StringVar(&desturl, "dest", "http://www.google.com/gen_204", "the test destination url, need 204 for success return")
-	flag.UintVar(&count, "c", 9999, "Count. Stop after sending COUNT requests")
-	flag.UintVar(&timeout, "o", 10, "timeout seconds for each request")
+	desturl := flag.String("dest", "http://www.google.com/gen_204", "the test destination url, need 204 for success return")
+	count := flag.Uint("c", 9999, "Count. Stop after sending COUNT requests")
+	timeout := flag.Uint("o", 10, "timeout seconds for each request")
+	inteval := flag.Uint("i", 1, "inteval seconds between pings")
 	flag.Parse()
 
+	var vmess string
 	if flag.NArg() == 0 {
 		if vmess = os.Getenv("VMESS"); vmess == "" {
 			fmt.Println(os.Args[0], "vmess://....")
@@ -33,7 +31,7 @@ func main() {
 	}
 
 	vmessping.PrintVersion(MAINVER)
-	code, err := vmessping.Ping(vmess, count, desturl, *verbose)
+	code, err := vmessping.Ping(vmess, *count, *desturl, *timeout, *inteval, *verbose)
 	if err != nil {
 		os.Exit(1)
 	}
