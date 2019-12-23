@@ -1,4 +1,4 @@
-package main
+package vmessping
 
 import (
 	"encoding/base64"
@@ -24,7 +24,7 @@ type VmessLink struct {
 	Path string      `json:"path,omitempty"`
 	Port interface{} `json:"port,omitempty"`
 	Ps   string      `json:"ps,omitempty"`
-	Tls  string      `json:"tls,omitempty"`
+	TLS  string      `json:"tls,omitempty"`
 	Type string      `json:"type,omitempty"`
 }
 
@@ -42,7 +42,7 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 	p := conf.TransportProtocol(v.Net)
 	s := &conf.StreamConfig{
 		Network:  &p,
-		Security: v.Tls,
+		Security: v.TLS,
 	}
 
 	switch v.Net {
@@ -81,7 +81,7 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 		}
 	}
 
-	if v.Tls == "tls" {
+	if v.TLS == "tls" {
 		s.TLSSettings = &conf.TLSConfig{Insecure: true}
 	}
 
@@ -105,7 +105,7 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 	return out.Build()
 }
 
-func parseVmess() (*VmessLink, error) {
+func NewVmess(vmess string) (*VmessLink, error) {
 
 	b64 := vmess[8:]
 	if len(b64)/4 != 0 {
@@ -125,15 +125,19 @@ func parseVmess() (*VmessLink, error) {
 	return v, nil
 }
 
-func startV2Ray() (*core.Instance, error) {
+func StartV2Ray(vmess string, verbose bool) (*core.Instance, error) {
 
-	o, err := parseVmess()
+	loglevel := commlog.Severity_Error
+	if verbose {
+		loglevel = commlog.Severity_Debug
+	}
+
+	o, err := NewVmess(vmess)
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Println("PING ", o.String())
-
 	ob, err := o.GenOutbound()
 	if err != nil {
 		return nil, err

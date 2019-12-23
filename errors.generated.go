@@ -1,4 +1,4 @@
-package main
+package vmessping
 
 import "v2ray.com/core/common/errors"
 

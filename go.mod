@@ -1,4 +1,4 @@
-module main
+module github.com/v2fly/vmessping
 
 go 1.13
 
