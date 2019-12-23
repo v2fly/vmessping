@@ -31,3 +31,8 @@ Ping http://www.google.com/gen_204: seq=3 time=396 ms
 3 requests made, 2 success, time 6.886747334s
 rtt min/avg/max = 396/443.00/490 ms
 ```
+
+# Compile from source
+```
+go get -v github.com/v2fly/vmessping/cmd/...
+```
