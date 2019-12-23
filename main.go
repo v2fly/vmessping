@@ -101,9 +101,13 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() == 0 {
-		fmt.Println(os.Args[0], "vmess://....")
-		flag.Usage()
-		os.Exit(1)
+		if vmess = os.Getenv("VMESS"); vmess == "" {
+			fmt.Println(os.Args[0], "vmess://....")
+			flag.Usage()
+			os.Exit(1)
+		}
+	} else {
+		vmess = flag.Args()[0]
 	}
 
 	printVersion()
@@ -115,12 +119,10 @@ func main() {
 		loglevel = commlog.Severity_Debug
 	}
 
-	vmess = flag.Args()[0]
 	server, err := startV2Ray()
 	if err != nil {
 		fmt.Println(err.Error())
-		// Configuration error. Exit with a special value to prevent systemd from restarting.
-		os.Exit(23)
+		os.Exit(-1)
 	}
 
 	if err := server.Start(); err != nil {
