@@ -108,8 +108,8 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 func NewVmess(vmess string) (*VmessLink, error) {
 
 	b64 := vmess[8:]
-	if len(b64)/4 != 0 {
-		b64 += strings.Repeat("=", len(b64)%4)
+	if len(b64)%4 != 0 {
+		b64 += strings.Repeat("=", 4-(len(b64)%4))
 	}
 
 	b, err := base64.StdEncoding.DecodeString(b64)
