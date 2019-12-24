@@ -82,12 +82,12 @@ func Ping(vmess string, count uint, dest string, timeoutsec, inteval uint, verbo
 	server, err := StartV2Ray(vmess, verbose)
 	if err != nil {
 		fmt.Println(err.Error())
-		return -1, err
+		return 2, err
 	}
 
 	if err := server.Start(); err != nil {
 		fmt.Println("Failed to start", err)
-		return -1, err
+		return 2, err
 	}
 	defer server.Close()
 
