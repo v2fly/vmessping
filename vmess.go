@@ -107,9 +107,13 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 
 func NewVmess(vmess string) (*VmessLink, error) {
 
+	if !strings.HasPrefix(vmess, "vmess://") {
+		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
+	}
+
 	b64 := vmess[8:]
-	if len(b64)%4 != 0 {
-		b64 += strings.Repeat("=", 4-(len(b64)%4))
+	if pad := len(b64) % 4; pad != 0 {
+		b64 += strings.Repeat("=", 4-pad)
 	}
 
 	b, err := base64.StdEncoding.DecodeString(b64)
