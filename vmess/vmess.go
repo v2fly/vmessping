@@ -78,9 +78,15 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 	}
 
 	mhp := strings.SplitN(string(b), ":", 3)
+	if len(mhp) != 3 {
+		return nil, fmt.Errorf("vmess unreconized: method:host:port -- %v", mhp)
+	}
 	link.Type = mhp[0]
 	link.Port = mhp[2]
 	idadd := strings.SplitN(mhp[1], "@", 2)
+	if len(idadd) != 2 {
+		return nil, fmt.Errorf("vmess unreconized: id@addr -- %v", idadd)
+	}
 	link.ID = idadd[0]
 	link.Add = idadd[1]
 	link.Aid = "0"
