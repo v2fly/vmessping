@@ -23,6 +23,14 @@ type VmessLink struct {
 	OrigLink string      `json:"-"`
 }
 
+func (v *VmessLink) IsEqual(c *VmessLink) bool {
+	return v.Add == c.Add && v.Aid == c.Aid &&
+		v.Host == c.Host && v.ID == c.ID &&
+		v.Net == c.Net && v.Path == c.Path &&
+		v.Port == c.Port && v.TLS == c.TLS &&
+		v.Type == c.Type
+}
+
 func (v VmessLink) LinkStr() string {
 	b, _ := json.Marshal(v)
 	return "vmess://" + base64.URLEncoding.EncodeToString(b)
