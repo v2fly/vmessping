@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"v2ray.com/core"
@@ -105,18 +106,14 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 	return out.Build()
 }
 
-func NewVmess(vmess string) (*VmessLink, error) {
+func NewVnVmess(vmess string) (*VmessLink, error) {
 
 	if !strings.HasPrefix(vmess, "vmess://") {
 		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
 	}
 
 	b64 := vmess[8:]
-	if pad := len(b64) % 4; pad != 0 {
-		b64 += strings.Repeat("=", 4-pad)
-	}
-
-	b, err := base64.StdEncoding.DecodeString(b64)
+	b, err := base64Decode(b64)
 	if err != nil {
 		return nil, err
 	}
@@ -129,6 +126,50 @@ func NewVmess(vmess string) (*VmessLink, error) {
 	return v, nil
 }
 
+func NewRkVmess(vmess string) (*VmessLink, error) {
+	url, err := url.Parse(vmess)
+	if err != nil {
+		return nil, err
+	}
+	link := &VmessLink{}
+
+	b64 := url.Host
+	b, err := base64Decode(b64)
+	if err != nil {
+		return nil, err
+	}
+
+	mhp := strings.SplitN(string(b), ":", 3)
+	link.Type = mhp[0]
+	link.Port = mhp[2]
+	idadd := strings.SplitN(mhp[1], "@", 2)
+	link.ID = idadd[0]
+	link.Add = idadd[1]
+	link.Aid = "0"
+
+	vals := url.Query()
+	if v := vals.Get("remarks"); v != "" {
+		link.Ps = v
+	}
+	if v := vals.Get("path"); v != "" {
+		link.Path = v
+	}
+	if v := vals.Get("tls"); v == "1" {
+		link.TLS = "tls"
+	}
+	if v := vals.Get("obfs"); v != "" {
+		switch v {
+		case "websocket":
+			link.Net = "ws"
+		}
+	}
+	if v := vals.Get("obfsParam"); v != "" {
+		link.Host = v
+	}
+
+	return link, nil
+}
+
 func StartV2Ray(vmess string, verbose bool) (*core.Instance, error) {
 
 	loglevel := commlog.Severity_Error
@@ -136,13 +177,17 @@ func StartV2Ray(vmess string, verbose bool) (*core.Instance, error) {
 		loglevel = commlog.Severity_Debug
 	}
 
-	o, err := NewVmess(vmess)
-	if err != nil {
-		return nil, err
+	var lk *VmessLink
+	if o, nerr := NewVnVmess(vmess); nerr == nil {
+		lk = o
+	} else if o, rerr := NewRkVmess(vmess); rerr == nil {
+		lk = o
+	} else {
+		return nil, fmt.Errorf("%v, %v", nerr, rerr)
 	}
 
-	fmt.Println("PING ", o.String())
-	ob, err := o.GenOutbound()
+	fmt.Println("PING ", lk.String())
+	ob, err := lk.GenOutbound()
 	if err != nil {
 		return nil, err
 	}
@@ -166,4 +211,12 @@ func StartV2Ray(vmess string, verbose bool) (*core.Instance, error) {
 	}
 
 	return server, nil
+}
+
+func base64Decode(b64 string) ([]byte, error) {
+	if pad := len(b64) % 4; pad != 0 {
+		b64 += strings.Repeat("=", 4-pad)
+	}
+
+	return base64.StdEncoding.DecodeString(b64)
 }
