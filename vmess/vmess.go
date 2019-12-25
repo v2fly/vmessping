@@ -120,7 +120,11 @@ func Base64Decode(b64 string) ([]byte, error) {
 		b64 += strings.Repeat("=", 4-pad)
 	}
 
-	return base64.StdEncoding.DecodeString(b64)
+	b, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return base64.URLEncoding.DecodeString(b64)
+	}
+	return b, nil
 }
 
 func ParseVmess(vmess string) (*VmessLink, error) {
