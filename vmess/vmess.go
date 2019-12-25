@@ -33,7 +33,7 @@ func (v *VmessLink) IsEqual(c *VmessLink) bool {
 
 func (v VmessLink) LinkStr() string {
 	b, _ := json.Marshal(v)
-	return "vmess://" + base64.URLEncoding.EncodeToString(b)
+	return "vmess://" + base64.StdEncoding.EncodeToString(b)
 }
 
 func (v VmessLink) String() string {
