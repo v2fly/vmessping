@@ -1,5 +1,7 @@
 # vmessping
-a ping prober for `vmess://` link in V2rayN/NG format.
+![Build Status](https://github.com/v2fly/vmessping/workflows/Go/badge.svg) 
+
+A ping prober for `vmess://` link in V2rayN/NG/Shadowrocket formats.
 
 ```
 ./vmessping vmess://....
