@@ -1,57 +1,18 @@
 package vmessping
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
 	"v2ray.com/core"
-	v2net "v2ray.com/core/common/net"
 )
 
 func PrintVersion(mv string) {
 	fmt.Fprintf(os.Stderr,
 		"Vmessping [%s] Yet another distribution of v2ray (v2ray-core: %s)\n", mv, core.Version())
-}
-
-func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int64, error) {
-	if inst == nil {
-		return -1, errors.New("core instance nil")
-	}
-
-	tr := &http.Transport{
-		TLSHandshakeTimeout: 6 * time.Second,
-		DisableKeepAlives:   true,
-		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			dest, err := v2net.ParseDestination(fmt.Sprintf("%s:%s", network, addr))
-			if err != nil {
-				return nil, err
-			}
-			return core.Dial(ctx, inst, dest)
-		},
-	}
-
-	c := &http.Client{
-		Transport: tr,
-		Timeout:   timeout,
-	}
-
-	req, _ := http.NewRequest("GET", dest, nil)
-	start := time.Now()
-	resp, err := c.Do(req)
-	if err != nil {
-		return -1, err
-	}
-	if resp.StatusCode != http.StatusNoContent {
-		return -1, fmt.Errorf("status != 204: %s", resp.Status)
-	}
-	resp.Body.Close()
-	return time.Since(start).Milliseconds(), nil
 }
 
 func printStat(delays []int64, req, errs int) {

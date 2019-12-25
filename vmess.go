@@ -3,6 +3,12 @@ package vmessping
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
+	"context"
+	"errors"
+	"net"
+	"net/http"
 
 	"github.com/v2fly/vmessping/vmess"
 	"v2ray.com/core"
@@ -10,6 +16,7 @@ import (
 	applog "v2ray.com/core/app/log"
 	"v2ray.com/core/app/proxyman"
 	commlog "v2ray.com/core/common/log"
+	v2net "v2ray.com/core/common/net"
 	"v2ray.com/core/common/serial"
 	"v2ray.com/core/infra/conf"
 )
@@ -124,4 +131,39 @@ func StartV2Ray(vm string, verbose bool) (*core.Instance, error) {
 	}
 
 	return server, nil
+}
+
+func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int64, error) {
+	if inst == nil {
+		return -1, errors.New("core instance nil")
+	}
+
+	tr := &http.Transport{
+		TLSHandshakeTimeout: 6 * time.Second,
+		DisableKeepAlives:   true,
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			dest, err := v2net.ParseDestination(fmt.Sprintf("%s:%s", network, addr))
+			if err != nil {
+				return nil, err
+			}
+			return core.Dial(ctx, inst, dest)
+		},
+	}
+
+	c := &http.Client{
+		Transport: tr,
+		Timeout:   timeout,
+	}
+
+	req, _ := http.NewRequest("GET", dest, nil)
+	start := time.Now()
+	resp, err := c.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	if resp.StatusCode != http.StatusNoContent {
+		return -1, fmt.Errorf("status != 204: %s", resp.Status)
+	}
+	resp.Body.Close()
+	return time.Since(start).Milliseconds(), nil
 }
