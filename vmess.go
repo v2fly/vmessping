@@ -1,12 +1,10 @@
 package vmessping
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"strings"
 
+	"github.com/v2fly/vmessping/vmess"
 	"v2ray.com/core"
 	"v2ray.com/core/app/dispatcher"
 	applog "v2ray.com/core/app/log"
@@ -16,24 +14,7 @@ import (
 	"v2ray.com/core/infra/conf"
 )
 
-type VmessLink struct {
-	Add  string      `json:"add,omitempty"`
-	Aid  string      `json:"aid,omitempty"`
-	Host string      `json:"host,omitempty"`
-	ID   string      `json:"id,omitempty"`
-	Net  string      `json:"net,omitempty"`
-	Path string      `json:"path,omitempty"`
-	Port interface{} `json:"port,omitempty"`
-	Ps   string      `json:"ps,omitempty"`
-	TLS  string      `json:"tls,omitempty"`
-	Type string      `json:"type,omitempty"`
-}
-
-func (v VmessLink) String() string {
-	return fmt.Sprintf("%s|%s|%v  (%s)", v.Net, v.Add, v.Port, v.Ps)
-}
-
-func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
+func Vmess2Outbound(v *vmess.VmessLink) (*core.OutboundHandlerConfig, error) {
 
 	out := &conf.OutboundDetourConfig{}
 	out.Tag = "proxy"
@@ -106,91 +87,20 @@ func (v VmessLink) GenOutbound() (*core.OutboundHandlerConfig, error) {
 	return out.Build()
 }
 
-func NewVnVmess(vmess string) (*VmessLink, error) {
-
-	if !strings.HasPrefix(vmess, "vmess://") {
-		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
-	}
-
-	b64 := vmess[8:]
-	b, err := base64Decode(b64)
-	if err != nil {
-		return nil, err
-	}
-
-	v := &VmessLink{}
-	if err := json.Unmarshal(b, v); err != nil {
-		return nil, err
-	}
-
-	return v, nil
-}
-
-func NewRkVmess(vmess string) (*VmessLink, error) {
-	if !strings.HasPrefix(vmess, "vmess://") {
-		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
-	}
-	url, err := url.Parse(vmess)
-	if err != nil {
-		return nil, err
-	}
-	link := &VmessLink{}
-
-	b64 := url.Host
-	b, err := base64Decode(b64)
-	if err != nil {
-		return nil, err
-	}
-
-	mhp := strings.SplitN(string(b), ":", 3)
-	link.Type = mhp[0]
-	link.Port = mhp[2]
-	idadd := strings.SplitN(mhp[1], "@", 2)
-	link.ID = idadd[0]
-	link.Add = idadd[1]
-	link.Aid = "0"
-
-	vals := url.Query()
-	if v := vals.Get("remarks"); v != "" {
-		link.Ps = v
-	}
-	if v := vals.Get("path"); v != "" {
-		link.Path = v
-	}
-	if v := vals.Get("tls"); v == "1" {
-		link.TLS = "tls"
-	}
-	if v := vals.Get("obfs"); v != "" {
-		switch v {
-		case "websocket":
-			link.Net = "ws"
-		}
-	}
-	if v := vals.Get("obfsParam"); v != "" {
-		link.Host = v
-	}
-
-	return link, nil
-}
-
-func StartV2Ray(vmess string, verbose bool) (*core.Instance, error) {
+func StartV2Ray(vm string, verbose bool) (*core.Instance, error) {
 
 	loglevel := commlog.Severity_Error
 	if verbose {
 		loglevel = commlog.Severity_Debug
 	}
 
-	var lk *VmessLink
-	if o, nerr := NewVnVmess(vmess); nerr == nil {
-		lk = o
-	} else if o, rerr := NewRkVmess(vmess); rerr == nil {
-		lk = o
-	} else {
-		return nil, fmt.Errorf("%v, %v", nerr, rerr)
+	lk, err := vmess.ParseVmess(vm)
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("PING ", lk.String())
-	ob, err := lk.GenOutbound()
+	ob, err := Vmess2Outbound(lk)
 	if err != nil {
 		return nil, err
 	}
@@ -214,12 +124,4 @@ func StartV2Ray(vmess string, verbose bool) (*core.Instance, error) {
 	}
 
 	return server, nil
-}
-
-func base64Decode(b64 string) ([]byte, error) {
-	if pad := len(b64) % 4; pad != 0 {
-		b64 += strings.Repeat("=", 4-pad)
-	}
-
-	return base64.StdEncoding.DecodeString(b64)
 }
