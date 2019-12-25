@@ -127,6 +127,9 @@ func NewVnVmess(vmess string) (*VmessLink, error) {
 }
 
 func NewRkVmess(vmess string) (*VmessLink, error) {
+	if !strings.HasPrefix(vmess, "vmess://") {
+		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
+	}
 	url, err := url.Parse(vmess)
 	if err != nil {
 		return nil, err
