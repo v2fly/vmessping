@@ -81,7 +81,7 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 	if len(mhp) != 3 {
 		return nil, fmt.Errorf("vmess unreconized: method:host:port -- %v", mhp)
 	}
-	link.Type = mhp[0]
+	// mhp[0] is the encryption method
 	link.Port = mhp[2]
 	idadd := strings.SplitN(mhp[1], "@", 2)
 	if len(idadd) != 2 {
