@@ -1,7 +1,13 @@
 # vmessping
 ![Build Status](https://github.com/v2fly/vmessping/workflows/Go/badge.svg) 
 
-A ping prober for `vmess://` link in V2rayN/NG/Shadowrocket formats.
+A ping prober for `vmess://` links in common seen formats.
+
+`vmessping` supports the following fomats:
+
+* V2rayN (V2rayNG)
+* Shadowrocket 
+* Quantumult (X)
 
 ```
 ./vmessping vmess://....
