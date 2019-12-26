@@ -31,13 +31,135 @@ func (v *VmessLink) IsEqual(c *VmessLink) bool {
 		v.Type == c.Type
 }
 
-func (v VmessLink) LinkStr() string {
+func (v VmessLink) LinkStr(linkType string) string {
+	switch strings.ToLower(linkType) {
+	case "n", "ng", "nng":
+		return v.asNgLink()
+	case "rk", "rocket", "shadowrocket":
+		return v.asRocketLink()
+	case "quan", "quantumult":
+		return v.asQuantumult()
+	}
+
+	return ""
+}
+
+func (v VmessLink) String() string {
+	return fmt.Sprintf("%s|%s|%v - (%s)", v.Net, v.Add, v.Port, v.Ps)
+}
+
+func (v VmessLink) asNgLink() string {
 	b, _ := json.Marshal(v)
 	return "vmess://" + base64.StdEncoding.EncodeToString(b)
 }
 
-func (v VmessLink) String() string {
-	return fmt.Sprintf("%s|%s|%v  (%s)", v.Net, v.Add, v.Port, v.Ps)
+func (v VmessLink) asRocketLink() string {
+	mhp := fmt.Sprintf("auto:%s@%s:%s", v.ID, v.Add, v.Port)
+	qs := url.Values{}
+	qs.Add("remarks", v.Ps)
+	if v.Net == "ws" {
+		qs.Add("obfs", "websocket")
+	}
+	if v.Host != "" {
+		qs.Add("obfsParam", v.Host)
+	}
+	if v.Path != "" {
+		qs.Add("path", v.Host)
+	}
+	if v.TLS == "tls" {
+		qs.Add("tls", "1")
+	}
+	return fmt.Sprintf("vmess://%s?%s", base64.URLEncoding.EncodeToString([]byte(mhp)), qs.Encode())
+}
+
+func (v VmessLink) asQuantumult() string {
+
+	/*
+	   let obfs = `,obfs=${jsonConf.net === 'ws' ? 'ws' : 'http'},obfs-path="${jsonConf.path || '/'}",obfs-header="Host:${jsonConf.host || jsonConf.add}[Rr][Nn]User-Agent:${ua}"`
+	   let quanVmess  = `${jsonConf.ps} = vmess,${jsonConf.add},${jsonConf.port},${method},"${jsonConf.id}",over-tls=${jsonConf.tls === 'tls' ? 'true' : 'false'},certificate=1${jsonConf.type === 'none' && jsonConf.net !== 'ws' ? '' : obfs},group=${group}`
+	*/
+
+	method := "aes-128-gcm"
+	vbase := fmt.Sprintf("%s = vmess,%s,%s,%s,\"%s\",over-tls=%v,certificate=1", v.Ps, v.Add, v.Port, method, v.ID, v.TLS == "tls")
+
+	var obfs string
+	if (v.Net == "ws" || v.Net == "http") && (v.Type == "none" || v.Type == "") {
+		if v.Path == "" {
+			v.Path = "/"
+		}
+		if v.Host == "" {
+			v.Host = v.Add
+		}
+		obfs = fmt.Sprintf(`,obfs=ws,obfs-path="%s",obfs-header="Host:%s[Rr][Nn]User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16A5366a"`, v.Path, v.Host)
+	}
+
+	vbase += obfs
+	vbase += ",group=Fndroid"
+	return "vmess://" + base64.URLEncoding.EncodeToString([]byte(vbase))
+}
+
+func NewQuanVmess(vmess string) (*VmessLink, error) {
+
+	if !strings.HasPrefix(vmess, "vmess://") {
+		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
+	}
+	b64 := vmess[8:]
+	b, err := Base64Decode(b64)
+	if err != nil {
+		return nil, err
+	}
+
+	info := string(b)
+	v := &VmessLink{}
+	v.OrigLink = vmess
+	v.Ver = "2"
+
+	psn := strings.SplitN(info, " = ", 2)
+	v.Ps = psn[0]
+	params := strings.Split(psn[1], ",")
+	v.Add = params[1]
+	v.Port = params[2]
+	v.ID = strings.Trim(params[4], "\"")
+	v.Aid = "0"
+	v.Net = "tcp"
+	v.Type = "none"
+
+	if len(params) > 4 {
+		for _, pkv := range params[5:] {
+			kvp := strings.SplitN(pkv, "=", 2)
+			if kvp[0] == "over-tls" && kvp[1] == "true" {
+				v.TLS = "tls"
+			}
+
+			if kvp[0] == "obfs" && kvp[1] == "ws" {
+				v.Net = "ws"
+			}
+
+			if kvp[0] == "obfs" && kvp[1] == "http" {
+				v.Type = "http"
+			}
+
+			if kvp[0] == "obfs-path" {
+				v.Path = strings.Trim(kvp[1], "\"")
+			}
+
+			if kvp[0] == "obfs-header" {
+				hd := strings.Trim(kvp[1], "\"")
+				for _, hl := range strings.Split(hd, "[Rr][Nn]") {
+					if strings.HasPrefix(hl, "Host:") {
+						host := hl[5:]
+						if host != v.Add {
+							v.Host = host
+						}
+						break
+					}
+				}
+			}
+
+		}
+	}
+
+	return v, nil
 }
 
 func NewVnVmess(vmess string) (*VmessLink, error) {
@@ -70,6 +192,8 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 		return nil, err
 	}
 	link := &VmessLink{}
+	link.Ver = "2"
+	link.OrigLink = vmess
 
 	b64 := url.Host
 	b, err := Base64Decode(b64)
@@ -111,7 +235,6 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 		link.Host = v
 	}
 
-	link.OrigLink = vmess
 	return link, nil
 }
 
