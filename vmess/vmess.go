@@ -256,8 +256,10 @@ func ParseVmess(vmess string) (*VmessLink, error) {
 		lk = o
 	} else if o, rerr := NewRkVmess(vmess); rerr == nil {
 		lk = o
+	} else if o, qerr := NewQuanVmess(vmess); qerr == nil {
+		lk = o
 	} else {
-		return nil, fmt.Errorf("%v, %v", nerr, rerr)
+		return nil, fmt.Errorf("%v, %v, %v", nerr, rerr, qerr)
 	}
 	return lk, nil
 }
