@@ -167,3 +167,7 @@ func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int6
 	resp.Body.Close()
 	return time.Since(start).Milliseconds(), nil
 }
+
+func CoreVersion() string {
+	return core.Version()
+}

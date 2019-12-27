@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/v2fly/vmessping"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/v2fly/vmessping"
 )
 
 var (
@@ -31,10 +34,16 @@ func main() {
 		vmess = flag.Args()[0]
 	}
 
+	osSignals := make(chan os.Signal, 1)
+	signal.Notify(osSignals, os.Interrupt, os.Kill, syscall.SIGTERM)
+
 	vmessping.PrintVersion(MAINVER)
-	code, err := vmessping.Ping(vmess, *count, *desturl, *timeout, *inteval, *quit, *verbose)
+	ps, err := vmessping.Ping(vmess, *count, *desturl, *timeout, *inteval, *quit, osSignals, *verbose)
 	if err != nil {
 		os.Exit(1)
 	}
-	os.Exit(code)
+	ps.PrintStats()
+	if ps.IsErr() {
+		os.Exit(1)
+	}
 }

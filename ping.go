@@ -3,98 +3,109 @@ package vmessping
 import (
 	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
-
-	"v2ray.com/core"
 )
 
 func PrintVersion(mv string) {
 	fmt.Fprintf(os.Stderr,
-		"Vmessping [%s] Yet another distribution of v2ray (v2ray-core: %s)\n", mv, core.Version())
+		"Vmessping ver[%s], A prober for v2ray (v2ray-core: %s)\n", mv, CoreVersion())
 }
 
-func printStat(delays []int64, req, errs uint) {
-	var sum int64
-	var max int64
-	var min int64
-	for _, v := range delays {
-		sum += v
-		if max == 0 || min == 0 {
-			max = v
-			min = v
+type PingStat struct {
+	StartTime  time.Time
+	SumMs      uint
+	MaxMs      uint
+	MinMs      uint
+	AvgMs      uint
+	Delays     []int64
+	ReqCounter uint
+	ErrCounter uint
+}
+
+func (p *PingStat) CalStats() {
+	for _, v := range p.Delays {
+		p.SumMs += uint(v)
+		if p.MaxMs == 0 || p.MinMs == 0 {
+			p.MaxMs = uint(v)
+			p.MinMs = uint(v)
 		}
-		if v > max {
-			max = v
+		if uv := uint(v); uv > p.MaxMs {
+			p.MaxMs = uv
 		}
-		if v < min {
-			min = v
+		if uv := uint(v); uv < p.MinMs {
+			p.MinMs = uv
 		}
 	}
-	avg := float64(sum) / float64(len(delays))
-
-	fmt.Println("\n--- vmess ping statistics ---")
-	fmt.Printf("%d requests made, %d success, total time %v\n", req, len(delays), time.Duration(sum)*time.Millisecond)
-	fmt.Printf("rtt min/avg/max = %d/%.0f/%d ms\n", min, avg, max)
+	if len(p.Delays) > 0 {
+		p.AvgMs = uint(float64(p.SumMs) / float64(len(p.Delays)))
+	}
 }
 
-func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, verbose bool) (int, error) {
+func (p PingStat) PrintStats() {
+	fmt.Println("\n--- vmess ping statistics ---")
+	fmt.Printf("%d requests made, %d success, total time %v\n", p.ReqCounter, len(p.Delays), time.Since(p.StartTime))
+	fmt.Printf("rtt min/avg/max = %d/%d/%d ms\n", p.MinMs, p.AvgMs, p.MaxMs)
+}
+
+func (p PingStat) IsErr() bool {
+	return len(p.Delays) == 0
+}
+
+func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, verbose bool) (*PingStat, error) {
 	server, err := StartV2Ray(vmess, verbose)
 	if err != nil {
 		fmt.Println(err.Error())
-		return 2, err
+		return nil, err
 	}
 
 	if err := server.Start(); err != nil {
 		fmt.Println("Failed to start", err)
-		return 2, err
+		return nil, err
 	}
 	defer server.Close()
 
+	ps := &PingStat{}
+	ps.StartTime = time.Now()
 	round := count
-	var delays []int64
-	var errcnt uint
-	var reqcnt uint
-
-	go func() {
-		osSignals := make(chan os.Signal, 1)
-		signal.Notify(osSignals, os.Interrupt, os.Kill, syscall.SIGTERM)
-		<-osSignals
-		fmt.Println()
-		printStat(delays, reqcnt, errcnt)
-		if len(delays) == 0 {
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}()
-
+L:
 	for round > 0 {
 		seq := count - round + 1
+		ps.ReqCounter++
 
-		reqcnt++
-		delay, err := MeasureDelay(server, time.Second*time.Duration(timeoutsec), dest)
-		if err != nil {
-			errcnt++
+		chDelay := make(chan int64)
+		go func() {
+			delay, err := MeasureDelay(server, time.Second*time.Duration(timeoutsec), dest)
+			if err != nil {
+				ps.ErrCounter++
+				fmt.Printf("Ping %s: seq=%d err %v\n", dest, seq, err)
+			}
+			chDelay <- delay
+		}()
+
+		select {
+		case delay := <-chDelay:
+			if delay > 0 {
+				ps.Delays = append(ps.Delays, delay)
+				fmt.Printf("Ping %s: seq=%d time=%d ms\n", dest, seq, delay)
+			}
+		case <-stopCh:
+			break L
 		}
 
-		if delay > 0 {
-			delays = append(delays, delay)
-			fmt.Printf("Ping %s: seq=%d time=%d ms\n", dest, seq, delay)
-		} else {
-			fmt.Printf("Ping %s: seq=%d err %v\n", dest, seq, err)
-		}
-
-		if quit > 0 && errcnt >= quit {
+		if quit > 0 && ps.ErrCounter >= quit {
 			break
 		}
 
-		round--
-		if round > 0 {
-			time.Sleep(time.Second * time.Duration(inteval))
+		if round--; round > 0 {
+			select {
+			case <-time.After(time.Second * time.Duration(inteval)):
+				continue
+			case <-stopCh:
+				break L
+			}
 		}
 	}
 
-	printStat(delays, reqcnt, errcnt)
-	return 0, nil
+	ps.CalStats()
+	return ps, nil
 }
