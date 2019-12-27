@@ -17,6 +17,7 @@ func main() {
 	count := flag.Uint("c", 9999, "Count. Stop after sending COUNT requests")
 	timeout := flag.Uint("o", 10, "timeout seconds for each request")
 	inteval := flag.Uint("i", 1, "inteval seconds between pings")
+	quit := flag.Uint("q", 0, "fast quit on error counts")
 	flag.Parse()
 
 	var vmess string
@@ -31,7 +32,7 @@ func main() {
 	}
 
 	vmessping.PrintVersion(MAINVER)
-	code, err := vmessping.Ping(vmess, *count, *desturl, *timeout, *inteval, *verbose)
+	code, err := vmessping.Ping(vmess, *count, *desturl, *timeout, *inteval, *quit, *verbose)
 	if err != nil {
 		os.Exit(1)
 	}

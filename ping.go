@@ -15,7 +15,7 @@ func PrintVersion(mv string) {
 		"Vmessping [%s] Yet another distribution of v2ray (v2ray-core: %s)\n", mv, core.Version())
 }
 
-func printStat(delays []int64, req, errs int) {
+func printStat(delays []int64, req, errs uint) {
 	var sum int64
 	var max int64
 	var min int64
@@ -39,7 +39,7 @@ func printStat(delays []int64, req, errs int) {
 	fmt.Printf("rtt min/avg/max = %d/%.0f/%d ms\n", min, avg, max)
 }
 
-func Ping(vmess string, count uint, dest string, timeoutsec, inteval uint, verbose bool) (int, error) {
+func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, verbose bool) (int, error) {
 	server, err := StartV2Ray(vmess, verbose)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -54,8 +54,8 @@ func Ping(vmess string, count uint, dest string, timeoutsec, inteval uint, verbo
 
 	round := count
 	var delays []int64
-	var errcnt int
-	var reqcnt int
+	var errcnt uint
+	var reqcnt uint
 
 	go func() {
 		osSignals := make(chan os.Signal, 1)
@@ -83,6 +83,10 @@ func Ping(vmess string, count uint, dest string, timeoutsec, inteval uint, verbo
 			fmt.Printf("Ping %s: seq=%d time=%d ms\n", dest, seq, delay)
 		} else {
 			fmt.Printf("Ping %s: seq=%d err %v\n", dest, seq, err)
+		}
+
+		if quit > 0 && errcnt >= quit {
+			break
 		}
 
 		round--
