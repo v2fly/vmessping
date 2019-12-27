@@ -42,5 +42,5 @@ rtt min/avg/max = 396/443.00/490 ms
 
 # Compile from source
 ```
-go get -v github.com/v2fly/vmessping/vmessping/...
+go get -v github.com/v2fly/vmessping/cmd/...
 ```

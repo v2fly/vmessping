@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"github.com/v2fly/miniv2ray"
 )
 
 func PrintVersion(mv string) {
 	fmt.Fprintf(os.Stderr,
-		"Vmessping ver[%s], A prober for v2ray (v2ray-core: %s)\n", mv, CoreVersion())
+		"Vmessping ver[%s], A prober for v2ray (v2ray-core: %s)\n", mv, miniv2ray.CoreVersion())
 }
 
 type PingStat struct {
@@ -74,7 +75,7 @@ L:
 
 		chDelay := make(chan int64)
 		go func() {
-			delay, err := MeasureDelay(server, time.Second*time.Duration(timeoutsec), dest)
+			delay, err := miniv2ray.MeasureDelay(server, time.Second*time.Duration(timeoutsec), dest)
 			if err != nil {
 				ps.ErrCounter++
 				fmt.Printf("Ping %s: seq=%d err %v\n", dest, seq, err)

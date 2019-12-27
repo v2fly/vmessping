@@ -1,4 +1,4 @@
-package vmessping
+package miniv2ray
 
 import (
 	"encoding/json"
