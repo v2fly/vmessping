@@ -37,11 +37,13 @@ jobs:
     - name: Build
       run: |
         GITVER=$(git describe --tags || git rev-parse --short HEAD)
-        cd vmessping
-        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.MAINVER=${GITVER}" -v -o vmessping_amd64_linux .
-        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.MAINVER=${GITVER}" -v -o vmessping_amd64_windows.exe .
-        zip ../vmessping_amd64_linux.zip vmessping_amd64_linux  
-        zip ../vmessping_amd64_windows.zip vmessping_amd64_windows.exe
+        CMDDIR=$(pwd)
+        LDFLAGS="-s -w -X main.MAINVER=${GITVER}"
+        pushd cmd/vmessping
+        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o vmessping_amd64_linux .
+        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o vmessping_amd64_windows.exe .
+        zip $CMDDIR/vmessping_amd64_linux.zip vmessping_amd64_linux  
+        zip $CMDDIR/vmessping_amd64_windows.zip vmessping_amd64_windows.exe
 
     - name: Release
       uses: softprops/action-gh-release@v1
