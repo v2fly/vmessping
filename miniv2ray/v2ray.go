@@ -3,6 +3,7 @@ package miniv2ray
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"context"
@@ -134,8 +135,21 @@ func StartV2Ray(vm string, verbose bool) (*core.Instance, error) {
 }
 
 func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int64, error) {
+	start := time.Now()
+	code, _, err := CoreHTTPRequest(inst, timeout, "GET", dest)
+	if err != nil {
+		return -1, err
+	}
+	if code != http.StatusNoContent {
+		return -1, fmt.Errorf("status != 204: %d", code)
+	}
+	return time.Since(start).Milliseconds(), nil
+}
+
+func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest string) (int, []byte, error) {
+
 	if inst == nil {
-		return -1, errors.New("core instance nil")
+		return -1, nil, errors.New("core instance nil")
 	}
 
 	tr := &http.Transport{
@@ -155,17 +169,15 @@ func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int6
 		Timeout:   timeout,
 	}
 
-	req, _ := http.NewRequest("GET", dest, nil)
-	start := time.Now()
+	req, _ := http.NewRequest(method, dest, nil)
 	resp, err := c.Do(req)
 	if err != nil {
-		return -1, err
+		return -1, nil, err
 	}
-	if resp.StatusCode != http.StatusNoContent {
-		return -1, fmt.Errorf("status != 204: %s", resp.Status)
-	}
-	resp.Body.Close()
-	return time.Since(start).Milliseconds(), nil
+	defer resp.Body.Close()
+
+	b, _ := ioutil.ReadAll(resp.Body)
+	return resp.StatusCode, b, nil
 }
 
 func CoreVersion() string {
