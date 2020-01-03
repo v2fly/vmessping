@@ -140,8 +140,8 @@ func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int6
 	if err != nil {
 		return -1, err
 	}
-	if code != http.StatusNoContent {
-		return -1, fmt.Errorf("status != 204: %d", code)
+	if code > 399 {
+		return -1, fmt.Errorf("status incorrect (>= 400): %d", code)
 	}
 	return time.Since(start).Milliseconds(), nil
 }
