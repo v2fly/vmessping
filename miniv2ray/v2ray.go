@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"context"
@@ -41,17 +42,19 @@ func Vmess2Outbound(v *vmess.VmessLink) (*core.OutboundHandlerConfig, error) {
 		if v.Type == "" || v.Type == "none" {
 			s.TCPSettings.HeaderConfig = json.RawMessage([]byte(`{ "type": "none" }`))
 		} else {
+			pathb, _ := json.Marshal(strings.Split(v.Path, ","))
+			hostb, _ := json.Marshal(strings.Split(v.Host, ","))
 			s.TCPSettings.HeaderConfig = json.RawMessage([]byte(fmt.Sprintf(`
 			{
 				"type": "http",
 				"request": {
-					"path": ["%s"],
+					"path": %s,
 					"headers": {
-						"Host": ["%s"]
+						"Host": %s
 					}
 				}
 			}
-			`, v.Path, v.Host)))
+			`, string(pathb), string(hostb))))
 		}
 	case "kcp":
 		s.KCPSettings = &conf.KCPConfig{}
