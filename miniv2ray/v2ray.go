@@ -70,7 +70,8 @@ func Vmess2Outbound(v *vmess.VmessLink) (*core.OutboundHandlerConfig, error) {
 			Path: v.Path,
 		}
 		if v.Host != "" {
-			s.HTTPSettings.Host = &conf.StringList{v.Host}
+			h := conf.StringList(strings.Split(v.Host, ","))
+			s.HTTPSettings.Host = &h
 		}
 	}
 
