@@ -33,9 +33,12 @@ func (v *VmessLink) IsEqual(c *VmessLink) bool {
 	if realNet(v.Net) != realNet(c.Net) {
 		return false
 	}
+	if fmt.Sprintf("%v", c.Port) != fmt.Sprintf("%v", v.Port) {
+		return false
+	}
 
 	return v.Add == c.Add && v.Aid == c.Aid && v.Host == c.Host && v.ID == c.ID &&
-		v.Path == c.Path && v.Port == c.Port && v.TLS == c.TLS && v.Type == c.Type
+		v.Path == c.Path && v.TLS == c.TLS && v.Type == c.Type
 }
 
 func (v VmessLink) LinkStr(linkType string) string {
