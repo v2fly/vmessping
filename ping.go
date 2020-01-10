@@ -52,7 +52,7 @@ func (p PingStat) IsErr() bool {
 	return len(p.Delays) == 0
 }
 
-func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, verbose bool) (*PingStat, error) {
+func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, showNode, verbose bool) (*PingStat, error) {
 	server, err := mv2ray.StartV2Ray(vmess, verbose)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -64,6 +64,17 @@ func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint,
 		return nil, err
 	}
 	defer server.Close()
+
+	if showNode {
+		go func() {
+			info, err := mv2ray.GetNodeInfo(server, time.Second*10)
+			if err != nil {
+				return
+			}
+
+			fmt.Printf("Node Outbound: %s/%s\n", info["loc"], info["ip"])
+		}()
+	}
 
 	ps := &PingStat{}
 	ps.StartTime = time.Now()
