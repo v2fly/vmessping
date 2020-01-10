@@ -24,11 +24,18 @@ type VmessLink struct {
 }
 
 func (v *VmessLink) IsEqual(c *VmessLink) bool {
-	return v.Add == c.Add && v.Aid == c.Aid &&
-		v.Host == c.Host && v.ID == c.ID &&
-		v.Net == c.Net && v.Path == c.Path &&
-		v.Port == c.Port && v.TLS == c.TLS &&
-		v.Type == c.Type
+	realNet := func(n string) string {
+		if n == "" {
+			return "tcp"
+		}
+		return n
+	}
+	if realNet(v.Net) != realNet(c.Net) {
+		return false
+	}
+
+	return v.Add == c.Add && v.Aid == c.Aid && v.Host == c.Host && v.ID == c.ID &&
+		v.Path == c.Path && v.Port == c.Port && v.TLS == c.TLS && v.Type == c.Type
 }
 
 func (v VmessLink) LinkStr(linkType string) string {
