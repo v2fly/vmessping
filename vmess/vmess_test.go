@@ -1,8 +1,9 @@
 package vmess
 
 import (
-	"github.com/google/go-cmp/cmp"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestNewQuanVmess(t *testing.T) {
@@ -50,4 +51,13 @@ func TestNewQuanVmess(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseVmess(t *testing.T) {
+	vm, err := ParseVmess("")
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(vm.LinkStr("ng"))
+	t.Logf("%#v", vm)
 }

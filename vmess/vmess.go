@@ -239,6 +239,9 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 		switch v {
 		case "websocket":
 			link.Net = "ws"
+		case "none":
+			link.Net = "tcp"
+			link.Type = "none"
 		}
 	}
 	if v := vals.Get("obfsParam"); v != "" {
