@@ -14,6 +14,9 @@ var (
 )
 
 func main() {
+	showN := flag.Bool("n", false, "show v2rayN/NG format")
+	showRK := flag.Bool("r", false, "show shadowrocket format")
+	showQ := flag.Bool("q", false, "show Quantumult format")
 	flag.Parse()
 	var link string
 	if flag.NArg() == 0 {
@@ -31,7 +34,14 @@ func main() {
 		log.Fatalln(err)
 	}
 	fmt.Println("VmessConvert:", MAINVER)
-	fmt.Println("V2rayN:", lk.LinkStr("ng"))
-	fmt.Println("ShadowRocket:", lk.LinkStr("rk"))
-	fmt.Println("Quantumult:", lk.LinkStr("quan"))
+
+	if *showN {
+		fmt.Println("V2rayN:", lk.LinkStr("ng"))
+	}
+	if *showRK {
+		fmt.Println("ShadowRocket:", lk.LinkStr("rk"))
+	}
+	if *showQ {
+		fmt.Println("Quantumult:", lk.LinkStr("quan"))
+	}
 }
