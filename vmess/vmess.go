@@ -64,7 +64,7 @@ func (v VmessLink) asNgLink() string {
 }
 
 func (v VmessLink) asRocketLink() string {
-	mhp := fmt.Sprintf("auto:%s@%s:%s", v.ID, v.Add, v.Port)
+	mhp := fmt.Sprintf("%s:%s@%s:%s", v.Type, v.ID, v.Add, v.Port)
 	qs := url.Values{}
 	qs.Add("remarks", v.Ps)
 	if v.Net == "ws" {
@@ -79,7 +79,14 @@ func (v VmessLink) asRocketLink() string {
 	if v.TLS == "tls" {
 		qs.Add("tls", "1")
 	}
-	return fmt.Sprintf("vmess://%s?%s", base64.URLEncoding.EncodeToString([]byte(mhp)), qs.Encode())
+
+	url := url.URL{
+		Scheme:   "vmess",
+		Host:     base64.URLEncoding.EncodeToString([]byte(mhp)),
+		RawQuery: qs.Encode(),
+	}
+
+	return url.String()
 }
 
 func (v VmessLink) asQuantumult() string {

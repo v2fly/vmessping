@@ -34,16 +34,29 @@ jobs:
       run: |
         go get -v -t -d ./...
 
-    - name: Build
+    - name: Build Vmessping
       run: |
+        BINNAME=vmessping
         GITVER=$(git describe --tags || git rev-parse --short HEAD)
         CMDDIR=$(pwd)
         LDFLAGS="-s -w -X main.MAINVER=${GITVER}"
-        pushd cmd/vmessping
-        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o vmessping_amd64_linux .
-        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o vmessping_amd64_windows.exe .
-        zip $CMDDIR/vmessping_amd64_linux.zip vmessping_amd64_linux  
-        zip $CMDDIR/vmessping_amd64_windows.zip vmessping_amd64_windows.exe
+        pushd cmd/${BINNAME}
+        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_linux .
+        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_windows.exe .
+        zip $CMDDIR/${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux  
+        zip $CMDDIR/${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
+
+    - name: Build Vmessconv
+      run: |
+        BINNAME=vmessconv
+        GITVER=$(git describe --tags || git rev-parse --short HEAD)
+        CMDDIR=$(pwd)
+        LDFLAGS="-s -w -X main.MAINVER=${GITVER}"
+        pushd cmd/${BINNAME}
+        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_linux .
+        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_windows.exe .
+        zip $CMDDIR/${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux  
+        zip $CMDDIR/${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
 
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -55,6 +68,8 @@ jobs:
         files: |
           vmessping_amd64_linux.zip 
           vmessping_amd64_windows.zip 
+          vmessconv_amd64_linux.zip 
+          vmessconv_amd64_windows.zip 
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
