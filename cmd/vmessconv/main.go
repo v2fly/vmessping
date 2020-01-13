@@ -44,4 +44,11 @@ func main() {
 	if *showQ {
 		fmt.Println("Quantumult:", lk.LinkStr("quan"))
 	}
+	if !*showN && !*showRK && !*showQ {
+		fmt.Println("V2rayN:", lk.LinkStr("ng"))
+		fmt.Println()
+		fmt.Println("ShadowRocket:", lk.LinkStr("rk"))
+		fmt.Println()
+		fmt.Println("Quantumult:", lk.LinkStr("quan"))
+	}
 }
