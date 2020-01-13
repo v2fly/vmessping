@@ -252,11 +252,13 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 }
 
 func Base64Decode(b64 string) ([]byte, error) {
+	b64 = strings.TrimSpace(b64)
+	stdb64 := b64
 	if pad := len(b64) % 4; pad != 0 {
-		b64 += strings.Repeat("=", 4-pad)
+		stdb64 += strings.Repeat("=", 4-pad)
 	}
 
-	b, err := base64.StdEncoding.DecodeString(b64)
+	b, err := base64.StdEncoding.DecodeString(stdb64)
 	if err != nil {
 		return base64.URLEncoding.DecodeString(b64)
 	}
