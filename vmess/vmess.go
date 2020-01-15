@@ -11,7 +11,7 @@ import (
 type VmessLink struct {
 	Ver      string      `json:"v"`
 	Add      string      `json:"add"`
-	Aid      string      `json:"aid"`
+	Aid      interface{} `json:"aid"`
 	Host     string      `json:"host"`
 	ID       string      `json:"id"`
 	Net      string      `json:"net"`
@@ -132,6 +132,9 @@ func NewQuanVmess(vmess string) (*VmessLink, error) {
 	v.Ver = "2"
 
 	psn := strings.SplitN(info, " = ", 2)
+	if len(psn) != 2 {
+		return nil, fmt.Errorf("part error", info)
+	}
 	v.Ps = psn[0]
 	params := strings.Split(psn[1], ",")
 	v.Add = params[1]

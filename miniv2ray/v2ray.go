@@ -88,7 +88,7 @@ func Vmess2Outbound(v *vmess.VmessLink) (*core.OutboundHandlerConfig, error) {
       "users": [
         {
           "id": "%s",
-          "alterId": %s,
+          "alterId": %v,
           "security": "auto"
         }
       ]
