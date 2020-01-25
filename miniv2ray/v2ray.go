@@ -157,7 +157,6 @@ func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest st
 	}
 
 	tr := &http.Transport{
-		TLSHandshakeTimeout: 6 * time.Second,
 		DisableKeepAlives:   true,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			dest, err := v2net.ParseDestination(fmt.Sprintf("%s:%s", network, addr))
