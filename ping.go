@@ -2,9 +2,10 @@ package vmessping
 
 import (
 	"fmt"
-	mv2ray "github.com/v2fly/vmessping/miniv2ray"
 	"os"
 	"time"
+
+	mv2ray "github.com/v2fly/vmessping/miniv2ray"
 )
 
 func PrintVersion(mv string) {
@@ -52,8 +53,8 @@ func (p PingStat) IsErr() bool {
 	return len(p.Delays) == 0
 }
 
-func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, showNode, verbose bool) (*PingStat, error) {
-	server, err := mv2ray.StartV2Ray(vmess, verbose)
+func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, showNode, verbose, usemux bool) (*PingStat, error) {
+	server, err := mv2ray.StartV2Ray(vmess, verbose, usemux)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err

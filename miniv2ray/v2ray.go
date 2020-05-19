@@ -23,12 +23,16 @@ import (
 	"v2ray.com/core/infra/conf"
 )
 
-func Vmess2Outbound(v *vmess.VmessLink) (*core.OutboundHandlerConfig, error) {
+func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfig, error) {
 
 	out := &conf.OutboundDetourConfig{}
 	out.Tag = "proxy"
 	out.Protocol = "vmess"
 	out.MuxSettings = &conf.MuxConfig{}
+	if usemux {
+		out.MuxSettings.Enabled = true
+		out.MuxSettings.Concurrency = 8
+	}
 
 	p := conf.TransportProtocol(v.Net)
 	s := &conf.StreamConfig{
@@ -99,7 +103,7 @@ func Vmess2Outbound(v *vmess.VmessLink) (*core.OutboundHandlerConfig, error) {
 	return out.Build()
 }
 
-func StartV2Ray(vm string, verbose bool) (*core.Instance, error) {
+func StartV2Ray(vm string, verbose, usemux bool) (*core.Instance, error) {
 
 	loglevel := commlog.Severity_Error
 	if verbose {
@@ -112,7 +116,7 @@ func StartV2Ray(vm string, verbose bool) (*core.Instance, error) {
 	}
 
 	fmt.Println("PING ", lk.String())
-	ob, err := Vmess2Outbound(lk)
+	ob, err := Vmess2Outbound(lk, usemux)
 	if err != nil {
 		return nil, err
 	}
