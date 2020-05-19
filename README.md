@@ -9,6 +9,14 @@ A ping prober for `vmess://` links in common seen formats.
 * Shadowrocket 
 * Quantumult (X)
 
+# Download
+
+Binaries are built automaticly by Github Action.
+
+Download in [Release](https://github.com/v2fly/vmessping/releases/latest)
+
+# Usage
+
 ```
 ./vmessping vmess://....
 Usage of ./vmessping:
@@ -18,29 +26,40 @@ Usage of ./vmessping:
         the test destination url, need 204 for success return (default "http://www.google.com/gen_204")
   -i uint
         inteval seconds between pings (default 1)
+  -m    use mux outbound
+  -n    show node location/outbound ip
   -o uint
         timeout seconds for each request (default 10)
+  -q uint
+        fast quit on error counts
   -v    verbose (debug log)
 ```
 
 # Example
 ```
-./vmessping -c 3 vmess://12345678.......
+./vmessping "vmess://ew0KI......."
+Vmessping ver[0.0.0-src], A prober for v2ray (v2ray-core: 4.23.1)
 
-Vmessping [0.0.0-src] Yet another distribution of v2ray (v2ray-core: 4.21.3)
-PING  tcp|my.server.domian|4321  (ps/name)
+Type: ws
+Addr: v2-server.address
+Port: 80
+UUID: 00000000-0000-0000-0000-000000000000
+PS: @describe
 
-2019/12/20 15:56:09 Get http://www.google.com/gen_204: net/http: request canceled ...
-Ping http://www.google.com/gen_204: seq=1 time=-1 ms
-Ping http://www.google.com/gen_204: seq=2 time=490 ms
-Ping http://www.google.com/gen_204: seq=3 time=396 ms
-
---- http://www.google.com/gen_204 vmess ping statistics ---
-3 requests made, 2 success, time 6.886747334s
-rtt min/avg/max = 396/443.00/490 ms
+Ping http://www.google.com/gen_204: seq=1 time=770 ms
+Ping http://www.google.com/gen_204: seq=2 time=1368 ms
+Ping http://www.google.com/gen_204: seq=3 time=761 ms
+Ping http://www.google.com/gen_204: seq=4 time=761 ms
+Ping http://www.google.com/gen_204: seq=5 time=1352 ms
+^C
+--- vmess ping statistics ---
+5 requests made, 5 success, total time 9.106869693s
+rtt min/avg/max = 761/1002/1368 ms
 ```
 
 # Compile from source
 ```
-go get -v github.com/v2fly/vmessping/cmd/...
+git clone https://github.com/v2fly/vmessping.git
+cd vmessping/cmd/vmessping
+go build
 ```
