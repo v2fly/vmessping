@@ -80,7 +80,12 @@ func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfi
 	}
 
 	if v.TLS == "tls" {
-		s.TLSSettings = &conf.TLSConfig{Insecure: true}
+		s.TLSSettings = &conf.TLSConfig{
+			Insecure: true,
+		}
+		if v.Host != "" {
+			s.TLSSettings.ServerName = v.Host
+		}
 	}
 
 	out.StreamSetting = s
@@ -161,7 +166,7 @@ func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest st
 	}
 
 	tr := &http.Transport{
-		DisableKeepAlives:   true,
+		DisableKeepAlives: true,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			dest, err := v2net.ParseDestination(fmt.Sprintf("%s:%s", network, addr))
 			if err != nil {
