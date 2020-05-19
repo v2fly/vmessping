@@ -58,6 +58,10 @@ func (v VmessLink) String() string {
 	return fmt.Sprintf("%s|%s|%v - (%s)", v.Net, v.Add, v.Port, v.Ps)
 }
 
+func (v VmessLink) DetailStr() string {
+	return fmt.Sprintf("Type: %s\nAddr: %s\nPort: %v\nUUID: %s\nPS: %s\n", v.Net, v.Add, v.Port, v.ID, v.Ps)
+}
+
 func (v VmessLink) asNgLink() string {
 	b, _ := json.Marshal(v)
 	return "vmess://" + base64.StdEncoding.EncodeToString(b)

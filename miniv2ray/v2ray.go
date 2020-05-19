@@ -115,7 +115,7 @@ func StartV2Ray(vm string, verbose, usemux bool) (*core.Instance, error) {
 		return nil, err
 	}
 
-	fmt.Println("PING ", lk.String())
+	fmt.Println("\n" + lk.DetailStr())
 	ob, err := Vmess2Outbound(lk, usemux)
 	if err != nil {
 		return nil, err
