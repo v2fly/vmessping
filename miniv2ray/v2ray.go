@@ -159,10 +159,10 @@ func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int6
 	return time.Since(start).Milliseconds(), nil
 }
 
-func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest string) (int, []byte, error) {
+func CoreHTTPClient(inst *core.Instance, timeout time.Duration) (*http.Client, error) {
 
 	if inst == nil {
-		return -1, nil, errors.New("core instance nil")
+		return nil, errors.New("core instance nil")
 	}
 
 	tr := &http.Transport{
@@ -179,6 +179,16 @@ func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest st
 	c := &http.Client{
 		Transport: tr,
 		Timeout:   timeout,
+	}
+
+	return c, nil
+}
+
+func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest string) (int, []byte, error) {
+
+	c, err := CoreHTTPClient(inst, timeout)
+	if err != nil {
+		return 0, nil, err
 	}
 
 	req, _ := http.NewRequest(method, dest, nil)

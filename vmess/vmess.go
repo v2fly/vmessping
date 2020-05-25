@@ -59,7 +59,7 @@ func (v VmessLink) String() string {
 }
 
 func (v VmessLink) DetailStr() string {
-	return fmt.Sprintf("Type: %s\nAddr: %s\nPort: %v\nUUID: %s\nPS: %s\n", v.Net, v.Add, v.Port, v.ID, v.Ps)
+	return fmt.Sprintf("Net: %s\nAddr: %s\nPort: %v\nUUID: %s\nType: %s\nTLS: %s\nPS: %s\n", v.Net, v.Add, v.Port, v.ID, v.Type, v.TLS, v.Ps)
 }
 
 func (v VmessLink) asNgLink() string {
