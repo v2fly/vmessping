@@ -23,6 +23,7 @@ func setTimeout() {
 }
 
 var (
+	MAINVER    = "0.0.0-src"
 	vmessLink  = kingpin.Arg("vmess", "the vmesslink").Required().String()
 	showList   = kingpin.Flag("list", "Show available speedtest.net servers").Short('l').Bool()
 	debug      = kingpin.Flag("debug", "Show v2ray core debug log").Short('d').Bool()
@@ -32,7 +33,7 @@ var (
 )
 
 func main() {
-	kingpin.Version("0.0.1")
+	kingpin.Version(MAINVER)
 	kingpin.Parse()
 
 	setTimeout()
