@@ -84,6 +84,8 @@ jobs:
           vmessping_amd64_windows.zip 
           vmessconv_amd64_linux.zip 
           vmessconv_amd64_windows.zip 
+          vmessspeed_amd64_linux.zip 
+          vmessspeed_amd64_windows.zip 
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
