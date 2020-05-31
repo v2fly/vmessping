@@ -10,4 +10,4 @@ require (
 	v2ray.com/core v4.19.1+incompatible
 )
 
-replace v2ray.com/core => github.com/v2fly/v2ray-core v1.24.5-0.20200402174204-c5842b91e62d
+replace v2ray.com/core => github.com/v2fly/v2ray-core v1.24.5-0.20200531043819-9dc12961fac5
