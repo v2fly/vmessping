@@ -1,4 +1,5 @@
-# vmessping
+# VMessPing
+
 ![Build Status](https://github.com/v2fly/vmessping/workflows/Go/badge.svg) 
 
 A ping prober for `vmess://` links in common seen formats.
@@ -11,69 +12,101 @@ A ping prober for `vmess://` links in common seen formats.
 
 # Download
 
-Binaries are built automaticly by Github Action.
+Binaries are built automaticly by GitHub Action.
 
-Download in [Release](https://github.com/v2fly/vmessping/releases/latest)
+Download in [Release](https://github.com/v2fly/vmessping/releases/latest) .
+
+* Arch Linux (AUR): https://aur.archlinux.org/packages/vmessping/
 
 # Usage
 
 ```
-./vmessping vmess://....
-Usage of ./vmessping:
+$ vmessping
+vmessping vmess:// ...
+Usage of vmessping:
   -c uint
-        Count. Stop after sending COUNT requests (default 9999)
+    	Count. Stop after sending COUNT requests (default 9999)
   -dest string
-        the test destination url, need 204 for success return (default "http://www.google.com/gen_204")
+    	the test destination url, need 204 for success return (default "http://www.google.com/gen_204")
   -i uint
-        inteval seconds between pings (default 1)
-  -m    use mux outbound
-  -n    show node location/outbound ip
+    	inteval seconds between pings (default 1)
+  -m	use mux outbound
+  -n	show node location/outbound ip
   -o uint
-        timeout seconds for each request (default 10)
+    	timeout seconds for each request (default 10)
   -q uint
-        fast quit on error counts
-  -v    verbose (debug log)
+    	fast quit on error counts
+  -v	verbose (debug log)
 ```
 
 # Example
+
 ```
-./vmessping "vmess://ew0KI......."
-Vmessping ver[0.0.0-src], A prober for v2ray (v2ray-core: 4.23.1)
+$ vmessping 'vmess://ew0KI ...'
+VMessPing ver[0.0.0-src], A prober for v2ray (v2ray-core: 4.23.1)
 
 Type: ws
 Addr: v2-server.address
-Port: 80
+Port: 443
 UUID: 00000000-0000-0000-0000-000000000000
+Type: 
+TLS: tls
 PS: @describe
 
-Ping http://www.google.com/gen_204: seq=1 time=770 ms
-Ping http://www.google.com/gen_204: seq=2 time=1368 ms
-Ping http://www.google.com/gen_204: seq=3 time=761 ms
-Ping http://www.google.com/gen_204: seq=4 time=761 ms
-Ping http://www.google.com/gen_204: seq=5 time=1352 ms
+Ping http://www.google.com/gen_204: seq=1 time=197 ms
+Ping http://www.google.com/gen_204: seq=2 time=81 ms
+Ping http://www.google.com/gen_204: seq=3 time=92 ms
+Ping http://www.google.com/gen_204: seq=4 time=94 ms
+Ping http://www.google.com/gen_204: seq=5 time=90 ms
 ^C
 --- vmess ping statistics ---
-5 requests made, 5 success, total time 9.106869693s
-rtt min/avg/max = 761/1002/1368 ms
+5 requests made, 5 success, total time 4.658023734s
+rtt min/avg/max = 81/110/197 ms
 ```
 
 # Compile from source
+
 ```
-git clone https://github.com/v2fly/vmessping.git
-cd vmessping/cmd/vmessping
-go build
+$ git clone https://github.com/v2fly/vmessping.git
+$ cd vmessping/cmd/vmessping
+$ go build -ldflags="-X=main.MAINVER=${pkgver} -linkmode=external"
 ```
 
 # Other tools
 
-## VmessSpeed
-
-Speedtest for vmess.
+## VMessConvert
 
 ### Usage
+
+```
+$ vmessconv
+vmessconv vmess:// ...
+Usage of usr/bin/vmessconv:
+  -n	show v2rayN / v2rayNG format
+  -q	show Quantumult format
+  -r	show Shadowrocket format
 ```
 
-./vmessspeed --help
+### Example
+
+```
+$ vmessconv 'vmess://ew0KI ...'
+VMessConvert: 0.0.0-src
+v2rayN / v2rayNG: vmess:// ...
+
+Shadowrocket: vmess:// ...
+
+Quantumult: vmess:// ...
+```
+
+## VMessSpeed
+
+Speedtest for VMess.
+
+### Usage
+
+```
+$ vmessspeed --help
 usage: vmessspeed [<flags>] <vmess>
 
 Flags:
@@ -92,15 +125,17 @@ Args:
 ### Example
 
 ```
-D:\>vmessspeed_amd64_windows.exe -s 14791 vmess://.....
+$ vmessspeed 'vmess://ew0KI ...'
 
 Type: ws
 Addr: v2-server.address
-Port: 80
+Port: 443
 UUID: 00000000-0000-0000-0000-000000000000
+Type: 
+TLS: tls
 PS: @describe
 
-Testing From IP: ...IP..ADDR....
+Testing From IP: ... IP ... ADDR ...
 
 Target Server: [14791]    63.21km Macau (Macau) by MTel
 Latency: 21.005ms

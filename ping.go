@@ -10,7 +10,7 @@ import (
 
 func PrintVersion(mv string) {
 	fmt.Fprintf(os.Stderr,
-		"Vmessping ver[%s], A prober for v2ray (v2ray-core: %s)\n", mv, mv2ray.CoreVersion())
+		"VMessPing ver[%s], A prober for v2ray (v2ray-core: %s)\n", mv, mv2ray.CoreVersion())
 }
 
 type PingStat struct {
