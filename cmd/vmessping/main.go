@@ -28,7 +28,7 @@ func main() {
 	var vmess string
 	if flag.NArg() == 0 {
 		if vmess = os.Getenv("VMESS"); vmess == "" {
-			fmt.Println(os.Args[0], "vmess://....")
+			fmt.Println(os.Args[0], "vmess:// ...")
 			flag.Usage()
 			os.Exit(1)
 		}
