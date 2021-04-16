@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"v2ray.com/core"
+	core "github.com/v2fly/v2ray-core/v4"
 )
 
 const (

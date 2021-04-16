@@ -12,15 +12,15 @@ import (
 	"net"
 	"net/http"
 
+	core "github.com/v2fly/v2ray-core/v4"
+	"github.com/v2fly/v2ray-core/v4/app/dispatcher"
+	applog "github.com/v2fly/v2ray-core/v4/app/log"
+	"github.com/v2fly/v2ray-core/v4/app/proxyman"
+	commlog "github.com/v2fly/v2ray-core/v4/common/log"
+	v2net "github.com/v2fly/v2ray-core/v4/common/net"
+	"github.com/v2fly/v2ray-core/v4/common/serial"
+	"github.com/v2fly/v2ray-core/v4/infra/conf"
 	"github.com/v2fly/vmessping/vmess"
-	"v2ray.com/core"
-	"v2ray.com/core/app/dispatcher"
-	applog "v2ray.com/core/app/log"
-	"v2ray.com/core/app/proxyman"
-	commlog "v2ray.com/core/common/log"
-	v2net "v2ray.com/core/common/net"
-	"v2ray.com/core/common/serial"
-	"v2ray.com/core/infra/conf"
 )
 
 func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfig, error) {
