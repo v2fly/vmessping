@@ -23,13 +23,14 @@ func setTimeout() {
 }
 
 var (
-	MAINVER    = "0.0.0-src"
+	MAINVER = "0.0.0-src"
+	timeout = 180
+
 	vmessLink  = kingpin.Arg("vmess", "the vmesslink").Required().String()
 	showList   = kingpin.Flag("list", "Show available speedtest.net servers").Short('l').Bool()
 	debug      = kingpin.Flag("debug", "Show v2ray core debug log").Short('d').Bool()
 	serverIds  = kingpin.Flag("server", "Select server id to speedtest").Short('s').Ints()
 	timeoutOpt = kingpin.Flag("timeout", "Define timeout seconds. Default: 10 sec").Short('t').Int()
-	timeout    = 180
 )
 
 func main() {

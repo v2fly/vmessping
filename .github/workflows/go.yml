@@ -1,91 +1,72 @@
-name: Go
+name: Build
 on:
   push:
     tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*"
 
 jobs:
-
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
 
-    - name: Set up Golang
-      uses: actions/setup-go@v2
-      with:
-        stable: 'true'
-      id: go
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - run: go version
+      - name: Generate Git log
+        run: |
+          git fetch origin +refs/tags/*:refs/tags/*
+          GITVER=$(git describe --tags)
+          PREVVER=$(git describe --tags --abbrev=0 ${GITVER}~1)
+          git log --oneline ${PREVVER}..${GITVER} > gitlogs.txt
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-      with:
-        ref: 'master'
-        fetch-depth: '0'
+      - name: Set variables
+        run: |
+          echo "VERSION=$(git describe --tags || git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "LDFLAGS=$(echo "-s -w -buildid= -X main.MAINVER=${VERSION}")" >> $GITHUB_ENV
 
-    - name: Generate Git log
-      run: |
-        git fetch origin +refs/tags/*:refs/tags/*
-        GITVER=$(git describe --tags)
-        PREVVER=$(git describe --tags --abbrev=0 ${GITVER}~1)
-        git log --oneline ${PREVVER}..${GITVER} > gitlogs.txt
+      - name: Build Vmessping
+        run: |
+          BINNAME=vmessping
+          GOOS=linux GOARCH=amd64 go build -v -ldflags="${LDFLAGS}" -o ${BINNAME}_amd64_linux ./cmd/${BINNAME}
+          GOOS=windows GOARCH=amd64 go build -v -ldflags="${LDFLAGS}" -o ${BINNAME}_amd64_windows.exe ./cmd/${BINNAME}
+          zip ./${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux
+          zip ./${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
 
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
+      - name: Build Vmessconv
+        run: |
+          BINNAME=vmessconv
+          GOOS=linux GOARCH=amd64 go build -v -ldflags="${LDFLAGS}" -o ${BINNAME}_amd64_linux ./cmd/${BINNAME}
+          GOOS=windows GOARCH=amd64 go build -v -ldflags="${LDFLAGS}" -o ${BINNAME}_amd64_windows.exe ./cmd/${BINNAME}
+          zip ./${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux
+          zip ./${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
 
-    - name: Build Vmessping
-      run: |
-        BINNAME=vmessping
-        GITVER=$(git describe --tags || git rev-parse --short HEAD)
-        CMDDIR=$(pwd)
-        LDFLAGS="-s -w -X main.MAINVER=${GITVER}"
-        pushd cmd/${BINNAME}
-        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_linux .
-        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_windows.exe .
-        zip $CMDDIR/${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux  
-        zip $CMDDIR/${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
+      - name: Build VmessSpeed
+        run: |
+          BINNAME=vmessspeed
+          GOOS=linux GOARCH=amd64 go build -v -ldflags="${LDFLAGS}" -o ${BINNAME}_amd64_linux ./cmd/${BINNAME}
+          GOOS=windows GOARCH=amd64 go build -v -ldflags="${LDFLAGS}" -o ${BINNAME}_amd64_windows.exe ./cmd/${BINNAME}
+          zip ./${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux  
+          zip ./${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
 
-    - name: Build Vmessconv
-      run: |
-        BINNAME=vmessconv
-        GITVER=$(git describe --tags || git rev-parse --short HEAD)
-        CMDDIR=$(pwd)
-        LDFLAGS="-s -w -X main.MAINVER=${GITVER}"
-        pushd cmd/${BINNAME}
-        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_linux .
-        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_windows.exe .
-        zip $CMDDIR/${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux  
-        zip $CMDDIR/${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
-
-    - name: Build VmessSpeed
-      run: |
-        BINNAME=vmessspeed
-        GITVER=$(git describe --tags || git rev-parse --short HEAD)
-        CMDDIR=$(pwd)
-        LDFLAGS="-s -w -X main.MAINVER=${GITVER}"
-        pushd cmd/${BINNAME}
-        GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_linux .
-        GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" -v -o ${BINNAME}_amd64_windows.exe .
-        zip $CMDDIR/${BINNAME}_amd64_linux.zip ${BINNAME}_amd64_linux  
-        zip $CMDDIR/${BINNAME}_amd64_windows.zip ${BINNAME}_amd64_windows.exe
-
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: false
-        draft: false
-        body_path: gitlogs.txt
-        files: |
-          vmessping_amd64_linux.zip 
-          vmessping_amd64_windows.zip 
-          vmessconv_amd64_linux.zip 
-          vmessconv_amd64_windows.zip 
-          vmessspeed_amd64_linux.zip 
-          vmessspeed_amd64_windows.zip 
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: false
+          draft: false
+          body_path: gitlogs.txt
+          files: |
+            vmessping_amd64_linux.zip 
+            vmessping_amd64_windows.zip 
+            vmessconv_amd64_linux.zip 
+            vmessconv_amd64_windows.zip 
+            vmessspeed_amd64_linux.zip 
+            vmessspeed_amd64_windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

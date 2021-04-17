@@ -1,16 +1,15 @@
 package miniv2ray
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
-	"strings"
-	"time"
-
-	"context"
-	"errors"
 	"net"
 	"net/http"
+	"strings"
+	"time"
 
 	core "github.com/v2fly/v2ray-core/v4"
 	"github.com/v2fly/v2ray-core/v4/app/dispatcher"
@@ -24,7 +23,6 @@ import (
 )
 
 func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfig, error) {
-
 	out := &conf.OutboundDetourConfig{}
 	out.Tag = "proxy"
 	out.Protocol = "vmess"
@@ -123,7 +121,6 @@ func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfi
 }
 
 func StartV2Ray(vm string, verbose, usemux bool) (*core.Instance, error) {
-
 	loglevel := commlog.Severity_Error
 	if verbose {
 		loglevel = commlog.Severity_Debug
@@ -174,7 +171,6 @@ func MeasureDelay(inst *core.Instance, timeout time.Duration, dest string) (int6
 }
 
 func CoreHTTPClient(inst *core.Instance, timeout time.Duration) (*http.Client, error) {
-
 	if inst == nil {
 		return nil, errors.New("core instance nil")
 	}
@@ -199,7 +195,6 @@ func CoreHTTPClient(inst *core.Instance, timeout time.Duration) (*http.Client, e
 }
 
 func CoreHTTPRequest(inst *core.Instance, timeout time.Duration, method, dest string) (int, []byte, error) {
-
 	c, err := CoreHTTPClient(inst, timeout)
 	if err != nil {
 		return 0, nil, err
