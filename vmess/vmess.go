@@ -205,7 +205,7 @@ func NewQuanVmess(vmess string) (*VmessLink, error) {
 
 	psn := strings.SplitN(info, " = ", 2)
 	if len(psn) != 2 {
-		return nil, fmt.Errorf("part error", info)
+		return nil, fmt.Errorf("part error: %s", info)
 	}
 	v.Ps = psn[0]
 	params := strings.Split(psn[1], ",")
