@@ -74,6 +74,7 @@ func main() {
 			fmt.Println("Standard:", err)
 		}
 		fmt.Println("Standard:", vlink)
+		fmt.Println()
 
 		vlink, err = lk.LinkStr("ng")
 		if err != nil {
