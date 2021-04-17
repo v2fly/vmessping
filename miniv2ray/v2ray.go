@@ -61,7 +61,9 @@ func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfi
 			`, string(pathb), string(hostb))))
 		}
 	case "kcp":
-		s.KCPSettings = &conf.KCPConfig{}
+		s.KCPSettings = &conf.KCPConfig{
+			Seed: &v.Path,
+		}
 		s.KCPSettings.HeaderConfig = json.RawMessage([]byte(fmt.Sprintf(`{ "type": "%s" }`, v.Type)))
 	case "ws":
 		s.WSSettings = &conf.WebSocketConfig{}
@@ -77,14 +79,26 @@ func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfi
 			h := conf.StringList(strings.Split(v.Host, ","))
 			s.HTTPSettings.Host = &h
 		}
+	case "quic":
+		s.QUICSettings = &conf.QUICConfig{
+			Security: v.Host,
+			Key:      v.Path,
+		}
+		s.QUICSettings.Header = json.RawMessage([]byte(fmt.Sprintf(`{ "type": "%s" }`, v.Type)))
+	case "gun", "grpc":
+		s.GRPCSettings = &conf.GunConfig{
+			ServiceName: v.Path,
+		}
 	}
 
 	if v.TLS == "tls" {
-		s.TLSSettings = &conf.TLSConfig{
-			Insecure: true,
-		}
-		if v.Host != "" {
+		s.TLSSettings = &conf.TLSConfig{}
+		if v.SNI != "" {
+			s.TLSSettings.ServerName = v.SNI
+		} else if v.Host != "" {
 			s.TLSSettings.ServerName = v.Host
+		} else {
+			s.TLSSettings.ServerName = v.Add
 		}
 	}
 

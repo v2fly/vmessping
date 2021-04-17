@@ -3,7 +3,9 @@ package vmess
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 )
@@ -19,8 +21,29 @@ type VmessLink struct {
 	Port     interface{} `json:"port"`
 	Ps       string      `json:"ps"`
 	TLS      string      `json:"tls"`
+	SNI      string      `json:"sni"`
 	Type     string      `json:"type"`
 	OrigLink string      `json:"-"`
+}
+
+type QueryArgs struct {
+	v url.Values
+}
+
+func (q *QueryArgs) Add(key, value string) {
+	q.v.Add(key, value)
+}
+
+func (q *QueryArgs) AddByDeault(key, value, defaultValue string) {
+	if value != "" {
+		q.v.Add(key, value)
+	} else {
+		q.v.Add(key, defaultValue)
+	}
+}
+
+func (q *QueryArgs) Encode() string {
+	return q.v.Encode()
 }
 
 func (v *VmessLink) IsEqual(c *VmessLink) bool {
@@ -41,17 +64,19 @@ func (v *VmessLink) IsEqual(c *VmessLink) bool {
 		v.Path == c.Path && v.TLS == c.TLS && v.Type == c.Type
 }
 
-func (v VmessLink) LinkStr(linkType string) string {
+func (v VmessLink) LinkStr(linkType string) (string, error) {
 	switch strings.ToLower(linkType) {
+	case "s", "std", "standard":
+		return v.asStandard()
 	case "n", "ng", "nng":
 		return v.asNgLink()
 	case "rk", "rocket", "shadowrocket":
 		return v.asRocketLink()
 	case "quan", "quantumult":
 		return v.asQuantumult()
+	default:
+		return "", errors.New("unsupported link format")
 	}
-
-	return ""
 }
 
 func (v VmessLink) String() string {
@@ -62,12 +87,12 @@ func (v VmessLink) DetailStr() string {
 	return fmt.Sprintf("Net: %s\nAddr: %s\nPort: %v\nUUID: %s\nType: %s\nTLS: %s\nPS: %s\n", v.Net, v.Add, v.Port, v.ID, v.Type, v.TLS, v.Ps)
 }
 
-func (v VmessLink) asNgLink() string {
-	b, _ := json.Marshal(v)
-	return "vmess://" + base64.StdEncoding.EncodeToString(b)
+func (v VmessLink) asNgLink() (string, error) {
+	b, err := json.Marshal(v)
+	return "vmess://" + base64.StdEncoding.EncodeToString(b), err
 }
 
-func (v VmessLink) asRocketLink() string {
+func (v VmessLink) asRocketLink() (string, error) {
 	mhp := fmt.Sprintf("%s:%s@%s:%s", v.Type, v.ID, v.Add, v.Port)
 	qs := url.Values{}
 	qs.Add("remarks", v.Ps)
@@ -90,10 +115,10 @@ func (v VmessLink) asRocketLink() string {
 		RawQuery: qs.Encode(),
 	}
 
-	return url.String()
+	return url.String(), nil
 }
 
-func (v VmessLink) asQuantumult() string {
+func (v VmessLink) asQuantumult() (string, error) {
 
 	/*
 	   let obfs = `,obfs=${jsonConf.net === 'ws' ? 'ws' : 'http'},obfs-path="${jsonConf.path || '/'}",obfs-header="Host:${jsonConf.host || jsonConf.add}[Rr][Nn]User-Agent:${ua}"`
@@ -116,7 +141,49 @@ func (v VmessLink) asQuantumult() string {
 
 	vbase += obfs
 	vbase += ",group=Fndroid"
-	return "vmess://" + base64.URLEncoding.EncodeToString([]byte(vbase))
+	return "vmess://" + base64.URLEncoding.EncodeToString([]byte(vbase)), nil
+}
+
+func (v VmessLink) asStandard() (string, error) {
+	t := v.Net
+
+	qs := QueryArgs{v: url.Values{}}
+	switch t {
+	case "tcp":
+		qs.Add("host", strings.ReplaceAll(v.Host, ",", "|"))
+		qs.AddByDeault("type", v.Type, "none")
+	case "h2":
+		t = "http"
+		fallthrough
+	case "http", "ws":
+		qs.Add("host", strings.ReplaceAll(v.Host, ",", "|"))
+		qs.AddByDeault("path", v.Path, "/")
+	case "kcp":
+		qs.AddByDeault("type", v.Type, "none")
+		qs.Add("seed", v.Path)
+	case "quic":
+		qs.AddByDeault("security", v.Host, "none")
+		qs.Add("key", v.Path)
+		qs.AddByDeault("type", v.Type, "none")
+	default:
+		return "", fmt.Errorf("unsupported transport: %s", t)
+	}
+
+	if v.TLS == "tls" {
+		t += "+tls"
+		qs.Add("tlsServerName", v.SNI)
+	}
+
+	link := url.URL{
+		Scheme:   "vmess",
+		Host:     net.JoinHostPort(v.Host, fmt.Sprintf("%v", v.Port)),
+		User:     url.UserPassword(t, v.ID+"-"+fmt.Sprintf("%v", v.Aid)),
+		Path:     "/",
+		Fragment: v.Ps,
+		RawQuery: qs.Encode(),
+	}
+
+	return link.String(), nil
 }
 
 func NewQuanVmess(vmess string) (*VmessLink, error) {
@@ -131,9 +198,10 @@ func NewQuanVmess(vmess string) (*VmessLink, error) {
 	}
 
 	info := string(b)
-	v := &VmessLink{}
-	v.OrigLink = vmess
-	v.Ver = "2"
+	v := &VmessLink{
+		Ver:      "2",
+		OrigLink: vmess,
+	}
 
 	psn := strings.SplitN(info, " = ", 2)
 	if len(psn) != 2 {
@@ -215,9 +283,10 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 	if err != nil {
 		return nil, err
 	}
-	link := &VmessLink{}
-	link.Ver = "2"
-	link.OrigLink = vmess
+	link := &VmessLink{
+		Ver:      "2",
+		OrigLink: vmess,
+	}
 
 	b64 := url.Host
 	b, err := Base64Decode(b64)
@@ -256,10 +325,74 @@ func NewRkVmess(vmess string) (*VmessLink, error) {
 		case "none":
 			link.Net = "tcp"
 			link.Type = "none"
+		case "http":
+			link.Net = "tcp"
+			link.Type = "http"
+
+			// case "h2":
+			// 	link.Net = "http"
+			// case "mkcp":
+			// 	link.Net = "kcp"
+			// notice: need improve.
 		}
 	}
 	if v := vals.Get("obfsParam"); v != "" {
 		link.Host = v
+	}
+
+	return link, nil
+}
+
+func NewStdVmess(vmess string) (*VmessLink, error) {
+	if !strings.HasPrefix(vmess, "vmess://") {
+		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
+	}
+
+	url, err := url.Parse(vmess)
+	if err != nil {
+		return nil, err
+	}
+
+	link := &VmessLink{
+		Ver:      "2",
+		Add:      url.Hostname(),
+		Port:     url.Port(),
+		Ps:       url.Fragment,
+		OrigLink: vmess,
+	}
+
+	u, idIsSet := url.User.Password()
+	if !idIsSet || len(u) < 38 {
+		return nil, fmt.Errorf("vmess unreconized: %s", vmess)
+	}
+	link.ID = u[:36]
+	link.Aid = u[37:]
+
+	t := strings.Split(url.User.Username(), "+")
+	link.Net = t[0]
+
+	vals := url.Query()
+	switch t[0] {
+	case "tcp":
+		link.Host = strings.ReplaceAll(vals.Get("host"), "|", ",")
+		link.Type = vals.Get("type")
+	case "http", "ws":
+		link.Host = strings.ReplaceAll(vals.Get("host"), "|", ",")
+		link.Path = vals.Get("path")
+	case "kcp":
+		link.Type = vals.Get("type")
+		link.Path = vals.Get("seed")
+	case "quic":
+		link.Host = vals.Get("security")
+		link.Path = vals.Get("key")
+		link.Type = vals.Get("type")
+	default:
+		return nil, fmt.Errorf("unsupported transport: %s", t[0])
+	}
+
+	if len(t) == 2 && t[1] == "tls" {
+		link.TLS = "tls"
+		link.SNI = vals.Get("tlsServerName")
 	}
 
 	return link, nil
@@ -281,14 +414,16 @@ func Base64Decode(b64 string) ([]byte, error) {
 
 func ParseVmess(vmess string) (*VmessLink, error) {
 	var lk *VmessLink
-	if o, nerr := NewVnVmess(vmess); nerr == nil {
+	if o, serr := NewStdVmess(vmess); serr == nil {
+		lk = o
+	} else if o, nerr := NewVnVmess(vmess); nerr == nil {
 		lk = o
 	} else if o, rerr := NewRkVmess(vmess); rerr == nil {
 		lk = o
 	} else if o, qerr := NewQuanVmess(vmess); qerr == nil {
 		lk = o
 	} else {
-		return nil, fmt.Errorf("%v, %v, %v", nerr, rerr, qerr)
+		return nil, fmt.Errorf("%v, %v, %v, %v", serr, nerr, rerr, qerr)
 	}
 	return lk, nil
 }
