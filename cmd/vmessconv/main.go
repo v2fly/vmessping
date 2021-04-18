@@ -37,63 +37,56 @@ func main() {
 	fmt.Println("VMessConvert:", MAINVER)
 
 	if *showS {
-		vlink, err := lk.LinkStr("s")
-		if err != nil {
-			fmt.Println("Standard:", err)
-		}
-		fmt.Println("Standard:", vlink)
+		printS(lk)
 	}
-
 	if *showN {
-		vlink, err := lk.LinkStr("ng")
-		if err != nil {
-			fmt.Println("v2rayN / v2rayNG:", err)
-		}
-		fmt.Println("v2rayN / v2rayNG:", vlink)
+		printN(lk)
 	}
 	if *showRK {
-		vlink, err := lk.LinkStr("rk")
-		if err != nil {
-			fmt.Println("Shadowrocket:", err)
-		}
-		fmt.Println("Shadowrocket:", vlink)
+		printRK(lk)
 	}
 	if *showQ {
-		vlink, err := lk.LinkStr("quan")
-		if err != nil {
-			fmt.Println("Quantumult:", err)
-		}
-		fmt.Println("Quantumult:", vlink)
+		printQ(lk)
 	}
 	if !*showS && !*showN && !*showRK && !*showQ {
-		var vlink string
-		var err error
-
-		vlink, err = lk.LinkStr("s")
-		if err != nil {
-			fmt.Println("Standard:", err)
-		}
-		fmt.Println("Standard:", vlink)
+		printS(lk)
 		fmt.Println()
-
-		vlink, err = lk.LinkStr("ng")
-		if err != nil {
-			fmt.Println("v2rayN / v2rayNG:", err)
-		}
-		fmt.Println("v2rayN / v2rayNG:", vlink)
+		printN(lk)
 		fmt.Println()
-
-		vlink, err = lk.LinkStr("rk")
-		if err != nil {
-			fmt.Println("Shadowrocket:", err)
-		}
-		fmt.Println("Shadowrocket:", vlink)
+		printRK(lk)
 		fmt.Println()
-
-		vlink, err = lk.LinkStr("quan")
-		if err != nil {
-			fmt.Println("Quantumult:", err)
-		}
-		fmt.Println("Quantumult:", vlink)
+		printQ(lk)
 	}
+}
+
+func printS(lk *vmess.VmessLink) {
+	vlink, err := lk.LinkStr("s")
+	if err != nil {
+		fmt.Println("Standard:", err)
+	}
+	fmt.Println("Standard:", vlink)
+}
+
+func printN(lk *vmess.VmessLink) {
+	vlink, err := lk.LinkStr("ng")
+	if err != nil {
+		fmt.Println("v2rayN / v2rayNG:", err)
+	}
+	fmt.Println("v2rayN / v2rayNG:", vlink)
+}
+
+func printRK(lk *vmess.VmessLink) {
+	vlink, err := lk.LinkStr("rk")
+	if err != nil {
+		fmt.Println("Shadowrocket:", err)
+	}
+	fmt.Println("Shadowrocket:", vlink)
+}
+
+func printQ(lk *vmess.VmessLink) {
+	vlink, err := lk.LinkStr("quan")
+	if err != nil {
+		fmt.Println("Quantumult:", err)
+	}
+	fmt.Println("Quantumult:", vlink)
 }
