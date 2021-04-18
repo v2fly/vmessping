@@ -60,33 +60,33 @@ func main() {
 }
 
 func printS(lk *vmess.VmessLink) {
-	vlink, err := lk.LinkStr("s")
+	link, err := lk.LinkStr("s")
 	if err != nil {
 		fmt.Println("Standard:", err)
 	}
-	fmt.Println("Standard:", vlink)
+	fmt.Println("Standard:", link)
 }
 
 func printN(lk *vmess.VmessLink) {
-	vlink, err := lk.LinkStr("ng")
+	link, err := lk.LinkStr("ng")
 	if err != nil {
 		fmt.Println("v2rayN / v2rayNG:", err)
 	}
-	fmt.Println("v2rayN / v2rayNG:", vlink)
+	fmt.Println("v2rayN / v2rayNG:", link)
 }
 
 func printRK(lk *vmess.VmessLink) {
-	vlink, err := lk.LinkStr("rk")
+	link, err := lk.LinkStr("rk")
 	if err != nil {
 		fmt.Println("Shadowrocket:", err)
 	}
-	fmt.Println("Shadowrocket:", vlink)
+	fmt.Println("Shadowrocket:", link)
 }
 
 func printQ(lk *vmess.VmessLink) {
-	vlink, err := lk.LinkStr("quan")
+	link, err := lk.LinkStr("quan")
 	if err != nil {
 		fmt.Println("Quantumult:", err)
 	}
-	fmt.Println("Quantumult:", vlink)
+	fmt.Println("Quantumult:", link)
 }

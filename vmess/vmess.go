@@ -26,11 +26,11 @@ type VmessLink struct {
 	OrigLink string      `json:"-"`
 }
 
-type QueryArgs struct {
+type queryArgs struct {
 	url.Values
 }
 
-func (q *QueryArgs) AddByDeault(key, value, defaultValue string) {
+func (q *queryArgs) AddByDeault(key, value, defaultValue string) {
 	if value != "" {
 		q.Add(key, value)
 	} else {
@@ -139,7 +139,7 @@ func (v VmessLink) asQuantumult() (string, error) {
 func (v VmessLink) asStandard() (string, error) {
 	t := v.Net
 
-	qs := QueryArgs{url.Values{}}
+	qs := queryArgs{url.Values{}}
 	switch t {
 	case "tcp":
 		qs.Add("host", strings.ReplaceAll(v.Host, ",", "|"))
