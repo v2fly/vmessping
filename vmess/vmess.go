@@ -27,23 +27,15 @@ type VmessLink struct {
 }
 
 type QueryArgs struct {
-	v url.Values
-}
-
-func (q *QueryArgs) Add(key, value string) {
-	q.v.Add(key, value)
+	url.Values
 }
 
 func (q *QueryArgs) AddByDeault(key, value, defaultValue string) {
 	if value != "" {
-		q.v.Add(key, value)
+		q.Add(key, value)
 	} else {
-		q.v.Add(key, defaultValue)
+		q.Add(key, defaultValue)
 	}
-}
-
-func (q *QueryArgs) Encode() string {
-	return q.v.Encode()
 }
 
 func (v *VmessLink) IsEqual(c *VmessLink) bool {
@@ -147,7 +139,7 @@ func (v VmessLink) asQuantumult() (string, error) {
 func (v VmessLink) asStandard() (string, error) {
 	t := v.Net
 
-	qs := QueryArgs{v: url.Values{}}
+	qs := QueryArgs{url.Values{}}
 	switch t {
 	case "tcp":
 		qs.Add("host", strings.ReplaceAll(v.Host, ",", "|"))
@@ -176,8 +168,8 @@ func (v VmessLink) asStandard() (string, error) {
 
 	link := url.URL{
 		Scheme:   "vmess",
-		Host:     net.JoinHostPort(v.Host, fmt.Sprintf("%v", v.Port)),
-		User:     url.UserPassword(t, v.ID+"-"+fmt.Sprintf("%v", v.Aid)),
+		Host:     net.JoinHostPort(v.Add, fmt.Sprintf("%v", v.Port)),
+		User:     url.UserPassword(t, v.ID+fmt.Sprintf("-%v", v.Aid)),
 		Path:     "/",
 		Fragment: v.Ps,
 		RawQuery: qs.Encode(),
