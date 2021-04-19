@@ -26,11 +26,13 @@ var (
 	MAINVER = "0.0.0-src"
 	timeout = 180
 
-	vmessLink  = kingpin.Arg("vmess", "the vmesslink").Required().String()
-	showList   = kingpin.Flag("list", "Show available speedtest.net servers").Short('l').Bool()
-	debug      = kingpin.Flag("debug", "Show v2ray core debug log").Short('d').Bool()
-	serverIds  = kingpin.Flag("server", "Select server id to speedtest").Short('s').Ints()
-	timeoutOpt = kingpin.Flag("timeout", "Define timeout seconds. Default: 10 sec").Short('t').Int()
+	vmessLink     = kingpin.Arg("vmess", "The link of VMess").Required().String()
+	showList      = kingpin.Flag("list", "Show available speedtest.net servers").Short('l').Bool()
+	debug         = kingpin.Flag("debug", "Show V2Ray core debug log").Short('d').Bool()
+	serverIds     = kingpin.Flag("server", "Select server id to speedtest").Short('s').Ints()
+	timeoutOpt    = kingpin.Flag("timeout", "Define timeout seconds. Default: 10 sec").Short('t').Int()
+	useMux        = kingpin.Flag("mux", "Use Mux outbound").Short('m').Bool()
+	allowInsecure = kingpin.Flag("allow-insecure", "Allow insecure TLS connections").Bool()
 )
 
 func main() {
@@ -39,7 +41,7 @@ func main() {
 
 	setTimeout()
 
-	server, err := mv2ray.StartV2Ray(*vmessLink, *debug, true)
+	server, err := mv2ray.StartV2Ray(*vmessLink, *debug, *useMux, *allowInsecure)
 	if err != nil {
 		log.Fatalln(err)
 	}

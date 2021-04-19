@@ -53,8 +53,8 @@ func (p PingStat) IsErr() bool {
 	return len(p.Delays) == 0
 }
 
-func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, showNode, verbose, usemux bool) (*PingStat, error) {
-	server, err := mv2ray.StartV2Ray(vmess, verbose, usemux)
+func Ping(vmess string, count uint, dest string, timeoutsec, inteval, quit uint, stopCh <-chan os.Signal, showNode, verbose, useMux, allowInsecure bool) (*PingStat, error) {
+	server, err := mv2ray.StartV2Ray(vmess, verbose, useMux, allowInsecure)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
