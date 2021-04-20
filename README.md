@@ -25,7 +25,7 @@ $ vmessping
 vmessping vmess:// ...
 Usage of vmessping:
   -allow-insecure
-      allow insecure TLS connections
+    	allow insecure TLS connections
   -c uint
     	Count. Stop after sending COUNT requests (default 9999)
   -dest string
