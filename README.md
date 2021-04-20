@@ -24,6 +24,8 @@ Download in [Release](https://github.com/v2fly/vmessping/releases/latest) .
 $ vmessping
 vmessping vmess:// ...
 Usage of vmessping:
+  -allow-insecure
+      allow insecure TLS connections
   -c uint
     	Count. Stop after sending COUNT requests (default 9999)
   -dest string
@@ -112,9 +114,11 @@ usage: vmessspeed [<flags>] <vmess>
 Flags:
       --help               Show context-sensitive help (also try --help-long and --help-man).
   -l, --list               Show available speedtest.net servers
-  -d, --debug              Show v2ray core debug log
+  -d, --debug              Show V2Ray core debug log
   -s, --server=SERVER ...  Select server id to speedtest
   -t, --timeout=TIMEOUT    Define timeout seconds. Default: 10 sec
+  -m, --mux                Use Mux outbound
+      --allow-insecure     Allow insecure TLS connections
       --version            Show application version.
 
 Args:
