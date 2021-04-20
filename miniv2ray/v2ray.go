@@ -22,12 +22,12 @@ import (
 	"github.com/v2fly/vmessping/vmess"
 )
 
-func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfig, error) {
+func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.OutboundHandlerConfig, error) {
 	out := &conf.OutboundDetourConfig{}
 	out.Tag = "proxy"
 	out.Protocol = "vmess"
 	out.MuxSettings = &conf.MuxConfig{}
-	if usemux {
+	if useMux {
 		out.MuxSettings.Enabled = true
 		out.MuxSettings.Concurrency = 8
 	}
@@ -90,7 +90,9 @@ func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfi
 	}
 
 	if v.TLS == "tls" {
-		s.TLSSettings = &conf.TLSConfig{}
+		s.TLSSettings = &conf.TLSConfig{
+			Insecure: allowInsecure,
+		}
 		if v.SNI != "" {
 			s.TLSSettings.ServerName = v.SNI
 		} else if v.Host != "" {
@@ -120,7 +122,7 @@ func Vmess2Outbound(v *vmess.VmessLink, usemux bool) (*core.OutboundHandlerConfi
 	return out.Build()
 }
 
-func StartV2Ray(vm string, verbose, usemux bool) (*core.Instance, error) {
+func StartV2Ray(vm string, verbose, useMux, allowInsecure bool) (*core.Instance, error) {
 	loglevel := commlog.Severity_Error
 	if verbose {
 		loglevel = commlog.Severity_Debug
@@ -132,7 +134,7 @@ func StartV2Ray(vm string, verbose, usemux bool) (*core.Instance, error) {
 	}
 
 	fmt.Println("\n" + lk.DetailStr())
-	ob, err := Vmess2Outbound(lk, usemux)
+	ob, err := Vmess2Outbound(lk, useMux, allowInsecure)
 	if err != nil {
 		return nil, err
 	}
