@@ -6,6 +6,7 @@ A ping prober for `vmess://` links in common seen formats.
 
 `vmessping` supports the following fomats:
 
+* Standard
 * V2rayN (V2rayNG)
 * Shadowrocket 
 * Quantumult (X)
@@ -87,6 +88,7 @@ Usage of usr/bin/vmessconv:
   -n	show v2rayN / v2rayNG format
   -q	show Quantumult format
   -r	show Shadowrocket format
+  -s  show Standard format
 ```
 
 ### Example
@@ -94,6 +96,8 @@ Usage of usr/bin/vmessconv:
 ```
 $ vmessconv 'vmess://ew0KI ...'
 VMessConvert: 0.0.0-src
+Standard: vmess:// ...
+
 v2rayN / v2rayNG: vmess:// ...
 
 Shadowrocket: vmess:// ...

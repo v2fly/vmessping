@@ -14,6 +14,7 @@ var (
 )
 
 func main() {
+	showS := flag.Bool("s", false, "show Standard format")
 	showN := flag.Bool("n", false, "show v2rayN / v2rayNG format")
 	showRK := flag.Bool("r", false, "show Shadowrocket format")
 	showQ := flag.Bool("q", false, "show Quantumult format")
@@ -35,20 +36,57 @@ func main() {
 	}
 	fmt.Println("VMessConvert:", MAINVER)
 
+	if *showS {
+		printS(lk)
+	}
 	if *showN {
-		fmt.Println("v2rayN / v2rayNG:", lk.LinkStr("ng"))
+		printN(lk)
 	}
 	if *showRK {
-		fmt.Println("Shadowrocket:", lk.LinkStr("rk"))
+		printRK(lk)
 	}
 	if *showQ {
-		fmt.Println("Quantumult:", lk.LinkStr("quan"))
+		printQ(lk)
 	}
-	if !*showN && !*showRK && !*showQ {
-		fmt.Println("v2rayN / v2rayNG:", lk.LinkStr("ng"))
+	if !*showS && !*showN && !*showRK && !*showQ {
+		printS(lk)
 		fmt.Println()
-		fmt.Println("Shadowrocket:", lk.LinkStr("rk"))
+		printN(lk)
 		fmt.Println()
-		fmt.Println("Quantumult:", lk.LinkStr("quan"))
+		printRK(lk)
+		fmt.Println()
+		printQ(lk)
 	}
+}
+
+func printS(lk *vmess.VmessLink) {
+	link, err := lk.LinkStr("s")
+	if err != nil {
+		fmt.Println("Standard:", err)
+	}
+	fmt.Println("Standard:", link)
+}
+
+func printN(lk *vmess.VmessLink) {
+	link, err := lk.LinkStr("ng")
+	if err != nil {
+		fmt.Println("v2rayN / v2rayNG:", err)
+	}
+	fmt.Println("v2rayN / v2rayNG:", link)
+}
+
+func printRK(lk *vmess.VmessLink) {
+	link, err := lk.LinkStr("rk")
+	if err != nil {
+		fmt.Println("Shadowrocket:", err)
+	}
+	fmt.Println("Shadowrocket:", link)
+}
+
+func printQ(lk *vmess.VmessLink) {
+	link, err := lk.LinkStr("quan")
+	if err != nil {
+		fmt.Println("Quantumult:", err)
+	}
+	fmt.Println("Quantumult:", link)
 }

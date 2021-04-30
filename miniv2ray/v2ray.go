@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/v2fly/vmessping/vmess"
-
 	core "github.com/v2fly/v2ray-core/v4"
 	"github.com/v2fly/v2ray-core/v4/app/dispatcher"
 	applog "github.com/v2fly/v2ray-core/v4/app/log"
@@ -21,6 +19,7 @@ import (
 	v2net "github.com/v2fly/v2ray-core/v4/common/net"
 	"github.com/v2fly/v2ray-core/v4/common/serial"
 	"github.com/v2fly/v2ray-core/v4/infra/conf"
+	"github.com/v2fly/vmessping/vmess"
 )
 
 func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.OutboundHandlerConfig, error) {
@@ -60,7 +59,9 @@ func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.Outbo
 			`, string(pathb), string(hostb))))
 		}
 	case "kcp":
-		s.KCPSettings = &conf.KCPConfig{}
+		s.KCPSettings = &conf.KCPConfig{
+			Seed: &v.Path,
+		}
 		s.KCPSettings.HeaderConfig = json.RawMessage([]byte(fmt.Sprintf(`{ "type": "%s" }`, v.Type)))
 	case "ws":
 		s.WSSettings = &conf.WebSocketConfig{}
@@ -76,14 +77,28 @@ func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.Outbo
 			h := conf.StringList(strings.Split(v.Host, ","))
 			s.HTTPSettings.Host = &h
 		}
+	case "quic":
+		s.QUICSettings = &conf.QUICConfig{
+			Security: v.Host,
+			Key:      v.Path,
+		}
+		s.QUICSettings.Header = json.RawMessage([]byte(fmt.Sprintf(`{ "type": "%s" }`, v.Type)))
+	case "gun", "grpc":
+		s.GRPCSettings = &conf.GunConfig{
+			ServiceName: v.Path,
+		}
 	}
 
 	if v.TLS == "tls" {
 		s.TLSSettings = &conf.TLSConfig{
 			Insecure: allowInsecure,
 		}
-		if v.Host != "" {
+		if v.SNI != "" {
+			s.TLSSettings.ServerName = v.SNI
+		} else if v.Host != "" {
 			s.TLSSettings.ServerName = v.Host
+		} else {
+			s.TLSSettings.ServerName = v.Add
 		}
 	}
 
