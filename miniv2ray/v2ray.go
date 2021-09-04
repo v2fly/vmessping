@@ -21,6 +21,7 @@ import (
 	v2net "github.com/v2fly/v2ray-core/v4/common/net"
 	"github.com/v2fly/v2ray-core/v4/common/serial"
 	"github.com/v2fly/v2ray-core/v4/infra/conf"
+	"github.com/v2fly/v2ray-core/v4/infra/conf/cfgcommon"
 )
 
 func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.OutboundHandlerConfig, error) {
@@ -73,7 +74,7 @@ func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.Outbo
 			Path: v.Path,
 		}
 		if v.Host != "" {
-			h := conf.StringList(strings.Split(v.Host, ","))
+			h := cfgcommon.StringList(strings.Split(v.Host, ","))
 			s.HTTPSettings.Host = &h
 		}
 	}
