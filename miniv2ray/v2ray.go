@@ -26,6 +26,15 @@ import (
 
 func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.OutboundHandlerConfig, error) {
 	out := &conf.OutboundDetourConfig{}
+	detour, err := VmessIntoOutboundDetour(v, out, useMux, allowInsecure)
+	if err != nil {
+		return nil, err
+	}
+	return detour.Build()
+}
+
+func VmessIntoOutboundDetour(v *vmess.VmessLink, template *conf.OutboundDetourConfig, useMux, allowInsecure bool) (*conf.OutboundDetourConfig, error) {
+	out := template
 	out.Tag = "proxy"
 	out.Protocol = "vmess"
 	out.MuxSettings = &conf.MuxConfig{}
@@ -105,7 +114,7 @@ func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.Outbo
   ]
 }`, v.Add, v.Port, v.ID, v.Aid)))
 	out.Settings = &oset
-	return out.Build()
+	return out, nil
 }
 
 func StartV2Ray(vm string, verbose, useMux, allowInsecure bool) (*core.Instance, error) {
