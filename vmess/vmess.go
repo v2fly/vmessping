@@ -9,7 +9,7 @@ import (
 )
 
 type VmessLink struct {
-	Ver      string      `json:"v"`
+	Ver      json.Number `json:"v"`
 	Add      string      `json:"add"`
 	Aid      interface{} `json:"aid"`
 	Host     string      `json:"host"`
