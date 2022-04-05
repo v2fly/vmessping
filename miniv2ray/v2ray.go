@@ -25,15 +25,15 @@ import (
 )
 
 func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.OutboundHandlerConfig, error) {
-	out := &conf.OutboundDetourConfig{}
-	detour, err := VmessIntoOutboundDetour(v, out, useMux, allowInsecure)
+	template := &conf.OutboundDetourConfig{}
+	detour, err := Vmess2OutboundDetour(v, useMux, allowInsecure, template)
 	if err != nil {
 		return nil, err
 	}
 	return detour.Build()
 }
 
-func VmessIntoOutboundDetour(v *vmess.VmessLink, template *conf.OutboundDetourConfig, useMux, allowInsecure bool) (*conf.OutboundDetourConfig, error) {
+func Vmess2OutboundDetour(v *vmess.VmessLink, useMux, allowInsecure bool, template *conf.OutboundDetourConfig) (*conf.OutboundDetourConfig, error) {
 	out := template
 	out.Tag = "proxy"
 	out.Protocol = "vmess"
