@@ -19,6 +19,7 @@ type VmessLink struct {
 	Port     interface{} `json:"port"`
 	Ps       string      `json:"ps"`
 	TLS      string      `json:"tls"`
+	SNI      string      `json:"sni"`
 	Type     string      `json:"type"`
 	OrigLink string      `json:"-"`
 }

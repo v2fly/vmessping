@@ -13,22 +13,25 @@ import (
 
 	"github.com/v2fly/vmessping/vmess"
 
-	core "github.com/v2fly/v2ray-core/v4"
-	"github.com/v2fly/v2ray-core/v4/app/dispatcher"
-	applog "github.com/v2fly/v2ray-core/v4/app/log"
-	"github.com/v2fly/v2ray-core/v4/app/proxyman"
-	commlog "github.com/v2fly/v2ray-core/v4/common/log"
-	v2net "github.com/v2fly/v2ray-core/v4/common/net"
-	"github.com/v2fly/v2ray-core/v4/common/serial"
-	"github.com/v2fly/v2ray-core/v4/infra/conf"
-	"github.com/v2fly/v2ray-core/v4/infra/conf/cfgcommon"
+	core "github.com/v2fly/v2ray-core/v5"
+	"github.com/v2fly/v2ray-core/v5/app/dispatcher"
+	applog "github.com/v2fly/v2ray-core/v5/app/log"
+	"github.com/v2fly/v2ray-core/v5/app/proxyman"
+	commlog "github.com/v2fly/v2ray-core/v5/common/log"
+	v2net "github.com/v2fly/v2ray-core/v5/common/net"
+	"github.com/v2fly/v2ray-core/v5/common/serial"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon/muxcfg"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon/tlscfg"
+	conf "github.com/v2fly/v2ray-core/v5/infra/conf/v4"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.OutboundHandlerConfig, error) {
 	out := &conf.OutboundDetourConfig{}
 	out.Tag = "proxy"
 	out.Protocol = "vmess"
-	out.MuxSettings = &conf.MuxConfig{}
+	out.MuxSettings = &muxcfg.MuxConfig{}
 	if useMux {
 		out.MuxSettings.Enabled = true
 		out.MuxSettings.Concurrency = 8
@@ -80,11 +83,15 @@ func Vmess2Outbound(v *vmess.VmessLink, useMux, allowInsecure bool) (*core.Outbo
 	}
 
 	if v.TLS == "tls" {
-		s.TLSSettings = &conf.TLSConfig{
+		s.TLSSettings = &tlscfg.TLSConfig{
 			Insecure: allowInsecure,
 		}
 		if v.Host != "" {
 			s.TLSSettings.ServerName = v.Host
+		}
+		if v.SNI != "" {
+			//override sni
+			s.TLSSettings.ServerName = v.SNI
 		}
 	}
 
@@ -125,10 +132,13 @@ func StartV2Ray(vm string, verbose, useMux, allowInsecure bool) (*core.Instance,
 		return nil, err
 	}
 	config := &core.Config{
-		App: []*serial.TypedMessage{
+		App: []*anypb.Any{
 			serial.ToTypedMessage(&applog.Config{
-				ErrorLogType:  applog.LogType_Console,
-				ErrorLogLevel: loglevel,
+				Error: &applog.LogSpecification{
+					Type:  applog.LogType_Console,
+					Level: loglevel,
+					Path:  "",
+				},
 			}),
 			serial.ToTypedMessage(&dispatcher.Config{}),
 			serial.ToTypedMessage(&proxyman.InboundConfig{}),
